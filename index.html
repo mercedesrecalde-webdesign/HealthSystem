@@ -15,14 +15,14 @@
   <title>Recalde Health System</title>
   
   <!-- PWA Manifest -->
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="./manifest.json">
   
   <!-- Favicons -->
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
   
-  <!-- Fallback favicon -->
+  <!-- Fallback favicon SVG -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%2314b8a6' rx='20' width='100' height='100'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white'>♥</text></svg>">
   
   <script src="https://cdn.tailwindcss.com"></script>
@@ -74,9 +74,144 @@
       padding: 8px;
       font-size: 20px;
     }
+    
+    /* Notificación de alarma */
+    .alarm-notification {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-150%);
+      background: white;
+      border-radius: 20px;
+      padding: 20px 24px;
+      box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+      z-index: 10000;
+      max-width: 90%;
+      width: 400px;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .alarm-notification.show {
+      transform: translateX(-50%) translateY(0);
+    }
+    .alarm-notification.medicacion {
+      border-left: 6px solid #f43f5e;
+    }
+    .alarm-notification.tarea {
+      border-left: 6px solid #3b82f6;
+    }
+    .alarm-notification h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .alarm-notification p {
+      margin: 0 0 16px;
+      color: #64748b;
+      font-size: 14px;
+    }
+    .alarm-notification .buttons {
+      display: flex;
+      gap: 10px;
+    }
+    .alarm-notification button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .alarm-notification .btn-snooze {
+      background: #f1f5f9;
+      color: #475569;
+    }
+    .alarm-notification .btn-done {
+      background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+      color: white;
+    }
+    
+    /* Indicador de guardado */
+    .save-indicator {
+      position: fixed;
+      bottom: 100px;
+      right: 20px;
+      background: #10b981;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+      z-index: 9998;
+    }
+    .save-indicator.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    /* Toggle de alarmas */
+    .alarm-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .alarm-toggle:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    .alarm-toggle input {
+      display: none;
+    }
+    .alarm-toggle .toggle-switch {
+      width: 36px;
+      height: 20px;
+      background: #475569;
+      border-radius: 10px;
+      position: relative;
+      transition: all 0.3s;
+    }
+    .alarm-toggle input:checked + .toggle-switch {
+      background: #10b981;
+    }
+    .alarm-toggle .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: all 0.3s;
+    }
+    .alarm-toggle input:checked + .toggle-switch::after {
+      left: 18px;
+    }
   </style>
 </head>
 <body>
+  <!-- Notificación de alarma -->
+  <div id="alarm-notification" class="alarm-notification">
+    <h3 id="alarm-title">⏰ Título de alarma</h3>
+    <p id="alarm-description">Descripción de la alarma</p>
+    <div class="buttons">
+      <button class="btn-snooze" onclick="snoozeAlarm()">⏰ Posponer 5 min</button>
+      <button class="btn-done" onclick="dismissAlarm()">✓ Listo</button>
+    </div>
+  </div>
+  
+  <!-- Indicador de guardado -->
+  <div id="save-indicator" class="save-indicator">💾 Guardado</div>
+  
   <!-- Banner de instalación PWA -->
   <div id="install-banner" class="install-banner">
     <div style="flex: 1;">
@@ -351,6 +486,11 @@
             </div>
           </div>
           <div class="flex items-center gap-2">
+            <label class="alarm-toggle" id="alarm-toggle-container">
+              <input type="checkbox" id="alarm-toggle" checked onchange="toggleAlarmas()">
+              <span class="toggle-switch"></span>
+              <span id="alarm-toggle-label" class="text-xs font-semibold">🔔</span>
+            </label>
             <button onclick="confirmarSalir()" id="btn-home-guardia" class="px-3 py-2 rounded-xl flex items-center gap-1.5 font-semibold text-sm">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
@@ -394,7 +534,7 @@
             <p id="subtitulo-sv" class="text-xs">Registrar al inicio de la guardia</p>
           </div>
         </div>
-        <div class="grid grid-cols-5 gap-2">
+        <div class="grid grid-cols-3 gap-2 mb-2">
           <div>
             <label id="label-pa" class="text-xs font-semibold block text-center mb-1">PA</label>
             <input type="text" id="sv-pa" placeholder="120/80" class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
@@ -407,6 +547,8 @@
             <label id="label-temp" class="text-xs font-semibold block text-center mb-1">T°</label>
             <input type="text" id="sv-temp" placeholder="36.5" class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
           </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
           <div>
             <label id="label-spo2" class="text-xs font-semibold block text-center mb-1">SpO2</label>
             <input type="text" id="sv-spo2" placeholder="98" class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
@@ -414,6 +556,10 @@
           <div>
             <label id="label-fr" class="text-xs font-semibold block text-center mb-1">FR</label>
             <input type="text" id="sv-fr" placeholder="16" class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
+          </div>
+          <div>
+            <label id="label-gluc" class="text-xs font-semibold block text-center mb-1">Gluc 🩸</label>
+            <input type="text" id="sv-gluc" placeholder="mg/dL" class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
           </div>
         </div>
       </div>
@@ -578,7 +724,7 @@
           </svg>
           <h3 id="titulo-sv-informe" class="font-bold">Signos Vitales</h3>
         </div>
-        <div id="lista-sv-informe" class="grid grid-cols-5 gap-2"></div>
+        <div id="lista-sv-informe" class="grid grid-cols-3 gap-2"></div>
       </div>
 
       <!-- Observaciones -->
@@ -616,6 +762,7 @@
 
     let tareas = [
       { id: 1, nombre: "CSV - Control Signos Vitales", horario: "Inicio guardia", detalle: "Pase de guardia en domicilio y revisión completa de Patricio", guardia: "ambas", tipo: "csv" },
+      { id: 12, nombre: "Control de Glucemia en Ayunas", horario: "05:15", detalle: "Realizar después del Omeprazol, antes de la colación. Registrar valor en observaciones", guardia: "nocturna", tipo: "csv" },
       { id: 2, nombre: "Rotación Postural", horario: "Cada 2 horas", detalle: "Según esquema: Dorsal → Lateral Der 30° → Dorsal → Lateral Izq 30°. Noche: espaciar si duerme", guardia: "ambas", tipo: "rotacion" },
       { id: 3, nombre: "Hidratación por Gastrostomía", horario: "Permanente", detalle: "Agua 2 lt total repartido entre ambas guardias", guardia: "ambas", tipo: "hidratacion" },
       { id: 4, nombre: "Hidratación por Boca", horario: "Permanente", detalle: "Gasa humedecida en jugo (suspender si duerme)", guardia: "ambas", tipo: "hidratacion" },
@@ -645,6 +792,280 @@
     let tareasCompletadas = {};
     let rotacionesRealizadas = [];
     let seccionesExpandidas = { 'medicacion-guardia': true, 'tareas-guardia': true, 'rotaciones-guardia': true };
+    
+    // Variables para alarmas
+    let alarmasActivas = true;
+    let alarmaActual = null;
+    let alarmasPospuestas = {};
+    let alarmasDisparadas = {};
+    let audioContext = null;
+    let checkAlarmsInterval = null;
+
+    // ==================== AUDIO / ALARMAS ====================
+    function initAudio() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return audioContext;
+    }
+
+    // Sonido para MEDICACIÓN (más urgente, tipo alarma médica)
+    function playMedicacionSound() {
+      try {
+        const ctx = initAudio();
+        const now = ctx.currentTime;
+        
+        // Crear osciladores para sonido de alarma médica
+        for (let i = 0; i < 3; i++) {
+          const osc1 = ctx.createOscillator();
+          const osc2 = ctx.createOscillator();
+          const gain = ctx.createGain();
+          
+          osc1.type = 'sine';
+          osc2.type = 'sine';
+          osc1.frequency.value = 880; // La agudo
+          osc2.frequency.value = 660; // Mi
+          
+          gain.gain.setValueAtTime(0.3, now + i * 0.6);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.6 + 0.5);
+          
+          osc1.connect(gain);
+          osc2.connect(gain);
+          gain.connect(ctx.destination);
+          
+          osc1.start(now + i * 0.6);
+          osc2.start(now + i * 0.6);
+          osc1.stop(now + i * 0.6 + 0.5);
+          osc2.stop(now + i * 0.6 + 0.5);
+        }
+      } catch (e) {
+        console.log('Audio no disponible');
+      }
+    }
+
+    // Sonido para TAREAS (más suave, tipo recordatorio)
+    function playTareaSound() {
+      try {
+        const ctx = initAudio();
+        const now = ctx.currentTime;
+        
+        // Sonido de campana suave
+        for (let i = 0; i < 2; i++) {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523, now + i * 0.4); // Do
+          osc.frequency.setValueAtTime(659, now + i * 0.4 + 0.1); // Mi
+          osc.frequency.setValueAtTime(784, now + i * 0.4 + 0.2); // Sol
+          
+          gain.gain.setValueAtTime(0.2, now + i * 0.4);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.4 + 0.35);
+          
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          
+          osc.start(now + i * 0.4);
+          osc.stop(now + i * 0.4 + 0.4);
+        }
+      } catch (e) {
+        console.log('Audio no disponible');
+      }
+    }
+
+    function toggleAlarmas() {
+      alarmasActivas = document.getElementById('alarm-toggle').checked;
+      guardarEstado();
+    }
+
+    function showAlarmNotification(tipo, titulo, descripcion, id) {
+      const notification = document.getElementById('alarm-notification');
+      const titleEl = document.getElementById('alarm-title');
+      const descEl = document.getElementById('alarm-description');
+      
+      notification.className = 'alarm-notification ' + tipo;
+      titleEl.innerHTML = (tipo === 'medicacion' ? '💊' : '📋') + ' ' + titulo;
+      descEl.textContent = descripcion;
+      
+      alarmaActual = { tipo, id };
+      notification.classList.add('show');
+      
+      // Reproducir sonido
+      if (tipo === 'medicacion') {
+        playMedicacionSound();
+      } else {
+        playTareaSound();
+      }
+      
+      // Vibrar si está disponible
+      if (navigator.vibrate) {
+        navigator.vibrate(tipo === 'medicacion' ? [200, 100, 200, 100, 200] : [200, 100, 200]);
+      }
+    }
+
+    function dismissAlarm() {
+      const notification = document.getElementById('alarm-notification');
+      notification.classList.remove('show');
+      if (alarmaActual) {
+        alarmasDisparadas[alarmaActual.id] = true;
+        guardarEstado();
+      }
+      alarmaActual = null;
+    }
+
+    function snoozeAlarm() {
+      const notification = document.getElementById('alarm-notification');
+      notification.classList.remove('show');
+      if (alarmaActual) {
+        // Posponer 5 minutos
+        alarmasPospuestas[alarmaActual.id] = Date.now() + 5 * 60 * 1000;
+        guardarEstado();
+      }
+      alarmaActual = null;
+    }
+
+    function checkAlarms() {
+      if (!alarmasActivas || !guardiaActual) return;
+      
+      const now = new Date();
+      const currentHour = now.getHours().toString().padStart(2, '0');
+      const currentMinute = now.getMinutes().toString().padStart(2, '0');
+      const currentTime = currentHour + ':' + currentMinute;
+      
+      // Revisar medicación
+      getMedicacionGuardia().forEach(med => {
+        const alarmId = 'med-' + med.id;
+        
+        // Si ya fue completada o disparada, no alarmar
+        if (medicacionCompletada[med.id] || alarmasDisparadas[alarmId]) return;
+        
+        // Si está pospuesta y no pasó el tiempo, no alarmar
+        if (alarmasPospuestas[alarmId] && Date.now() < alarmasPospuestas[alarmId]) return;
+        
+        // Comparar hora (con margen de 1 minuto)
+        if (med.hora === currentTime || (currentMinute === '00' && med.hora === currentHour + ':00')) {
+          const meds = med.medicamentos.map(m => m.nombre).join(', ');
+          showAlarmNotification('medicacion', 'Medicación - ' + med.hora, meds, alarmId);
+        }
+      });
+      
+      // Revisar tareas con horario específico
+      getTareasGuardia().forEach(tarea => {
+        const alarmId = 'tarea-' + tarea.id;
+        
+        if (tareasCompletadas[tarea.id] || alarmasDisparadas[alarmId]) return;
+        if (alarmasPospuestas[alarmId] && Date.now() < alarmasPospuestas[alarmId]) return;
+        
+        // Solo tareas con horario específico (no "Permanente", "Cada 2 horas", etc.)
+        const horaMatch = tarea.horario.match(/^(\d{2}):(\d{2})/);
+        if (horaMatch && tarea.horario.substring(0, 5) === currentTime) {
+          showAlarmNotification('tarea', tarea.nombre, tarea.detalle, alarmId);
+        }
+      });
+      
+      // Recordatorio de rotación cada 2 horas
+      const rotacionAlarmId = 'rotacion-' + currentHour;
+      if (currentMinute === '00' && parseInt(currentHour) % 2 === 0) {
+        if (!alarmasDisparadas[rotacionAlarmId]) {
+          const ultimaRotacion = rotacionesRealizadas[rotacionesRealizadas.length - 1];
+          if (!ultimaRotacion || !ultimaRotacion.hora.startsWith(currentHour)) {
+            showAlarmNotification('tarea', 'Rotación Postural', 'Es hora de rotar a Patricio según el esquema', rotacionAlarmId);
+          }
+        }
+      }
+    }
+
+    // ==================== PERSISTENCIA (LocalStorage) ====================
+    function guardarEstado() {
+      if (!guardiaActual) return;
+      
+      const estado = {
+        guardiaActual,
+        enfermero,
+        auxiliar,
+        medicacionCompletada,
+        tareasCompletadas,
+        rotacionesRealizadas,
+        signosVitales: {
+          pa: document.getElementById('sv-pa')?.value || '',
+          fc: document.getElementById('sv-fc')?.value || '',
+          temp: document.getElementById('sv-temp')?.value || '',
+          spo2: document.getElementById('sv-spo2')?.value || '',
+          fr: document.getElementById('sv-fr')?.value || '',
+          gluc: document.getElementById('sv-gluc')?.value || ''
+        },
+        alarmasActivas,
+        alarmasPospuestas,
+        alarmasDisparadas,
+        fechaGuardia: new Date().toDateString(),
+        timestamp: Date.now()
+      };
+      
+      localStorage.setItem('recaldeHealthGuardia', JSON.stringify(estado));
+      mostrarIndicadorGuardado();
+    }
+
+    function cargarEstado() {
+      try {
+        const guardado = localStorage.getItem('recaldeHealthGuardia');
+        if (!guardado) return null;
+        
+        const estado = JSON.parse(guardado);
+        
+        // Verificar que sea del mismo día
+        if (estado.fechaGuardia !== new Date().toDateString()) {
+          // Es de otro día, limpiar
+          localStorage.removeItem('recaldeHealthGuardia');
+          return null;
+        }
+        
+        // Verificar que la guardia aún sea válida (no más de 12 horas)
+        const horasTranscurridas = (Date.now() - estado.timestamp) / (1000 * 60 * 60);
+        if (horasTranscurridas > 12) {
+          localStorage.removeItem('recaldeHealthGuardia');
+          return null;
+        }
+        
+        return estado;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function restaurarEstado(estado) {
+      guardiaActual = estado.guardiaActual;
+      enfermero = estado.enfermero;
+      auxiliar = estado.auxiliar;
+      medicacionCompletada = estado.medicacionCompletada || {};
+      tareasCompletadas = estado.tareasCompletadas || {};
+      rotacionesRealizadas = estado.rotacionesRealizadas || [];
+      alarmasActivas = estado.alarmasActivas !== false;
+      alarmasPospuestas = estado.alarmasPospuestas || {};
+      alarmasDisparadas = estado.alarmasDisparadas || {};
+      
+      // Restaurar inputs
+      document.getElementById('input-enfermero').value = enfermero;
+      document.getElementById('input-auxiliar').value = auxiliar;
+      
+      return estado.signosVitales;
+    }
+
+    function mostrarIndicadorGuardado() {
+      const indicator = document.getElementById('save-indicator');
+      indicator.classList.add('show');
+      setTimeout(() => {
+        indicator.classList.remove('show');
+      }, 1500);
+    }
+
+    function limpiarGuardia() {
+      localStorage.removeItem('recaldeHealthGuardia');
+      medicacionCompletada = {};
+      tareasCompletadas = {};
+      rotacionesRealizadas = [];
+      alarmasPospuestas = {};
+      alarmasDisparadas = {};
+    }
 
     // ==================== FUNCIONES UTILIDAD ====================
     function actualizarHora() {
@@ -693,10 +1114,13 @@
     function confirmarSalir() {
       const completadas = Object.keys(medicacionCompletada).length + Object.keys(tareasCompletadas).length;
       if (completadas > 0) {
-        if (confirm('¿Estás seguro de que querés salir?\n\nSi no generaste el informe, se perderán los datos de esta guardia.')) {
+        if (confirm('¿Estás seguro de que querés salir?\n\nLos datos de esta guardia quedarán guardados hasta que:\n- Generes el informe, o\n- Termine el día\n\n¿Salir ahora?')) {
+          if (checkAlarmsInterval) clearInterval(checkAlarmsInterval);
           volverInicio();
         }
       } else {
+        if (checkAlarmsInterval) clearInterval(checkAlarmsInterval);
+        limpiarGuardia();
         volverInicio();
       }
     }
@@ -850,15 +1274,46 @@
     }
 
     // ==================== GUARDIA ====================
-    function iniciarGuardia(tipo) {
+    function iniciarGuardia(tipo, signosVitalesRestaurados = null) {
       guardiaActual = tipo;
-      medicacionCompletada = {};
-      tareasCompletadas = {};
-      rotacionesRealizadas = [];
+      
+      // Si no hay datos restaurados, limpiar todo
+      if (!signosVitalesRestaurados) {
+        medicacionCompletada = {};
+        tareasCompletadas = {};
+        rotacionesRealizadas = [];
+        alarmasPospuestas = {};
+        alarmasDisparadas = {};
+      }
       
       mostrarPantalla('pantalla-guardia');
       aplicarEstilosGuardia(tipo);
       renderizarGuardia();
+      
+      // Restaurar signos vitales si existen
+      if (signosVitalesRestaurados) {
+        document.getElementById('sv-pa').value = signosVitalesRestaurados.pa || '';
+        document.getElementById('sv-fc').value = signosVitalesRestaurados.fc || '';
+        document.getElementById('sv-temp').value = signosVitalesRestaurados.temp || '';
+        document.getElementById('sv-spo2').value = signosVitalesRestaurados.spo2 || '';
+        document.getElementById('sv-fr').value = signosVitalesRestaurados.fr || '';
+        document.getElementById('sv-gluc').value = signosVitalesRestaurados.gluc || '';
+      }
+      
+      // Configurar toggle de alarmas
+      document.getElementById('alarm-toggle').checked = alarmasActivas;
+      
+      // Iniciar chequeo de alarmas cada 30 segundos
+      if (checkAlarmsInterval) clearInterval(checkAlarmsInterval);
+      checkAlarmsInterval = setInterval(checkAlarms, 30000);
+      
+      // Guardar estado inicial
+      guardarEstado();
+      
+      // Agregar listeners para guardar signos vitales
+      ['sv-pa', 'sv-fc', 'sv-temp', 'sv-spo2', 'sv-fr', 'sv-gluc'].forEach(id => {
+        document.getElementById(id).addEventListener('change', guardarEstado);
+      });
     }
 
     function aplicarEstilosGuardia(tipo) {
@@ -872,6 +1327,8 @@
         document.getElementById('titulo-guardia').className = 'text-lg font-black text-white';
         document.getElementById('subtitulo-guardia').className = 'text-xs font-semibold text-emerald-300';
         document.getElementById('btn-home-guardia').className = 'px-3 py-2 rounded-xl flex items-center gap-1.5 font-semibold text-sm bg-white/10 text-white hover:bg-white/20';
+        document.getElementById('alarm-toggle-container').className = 'alarm-toggle';
+        document.getElementById('alarm-toggle-label').className = 'text-xs font-semibold text-emerald-200';
         document.getElementById('badge-hora-guardia').className = 'px-3 py-1.5 rounded-xl flex items-center gap-2 bg-emerald-500/30';
         document.getElementById('icono-guardia').innerHTML = '<svg class="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
         document.getElementById('hora-guardia').className = 'text-sm font-bold text-emerald-200';
@@ -889,10 +1346,10 @@
         document.getElementById('seccion-rotaciones-guardia').className = 'rounded-2xl p-4 border bg-white/10 backdrop-blur-xl border-white/20';
         
         // Inputs
-        ['sv-pa', 'sv-fc', 'sv-temp', 'sv-spo2', 'sv-fr'].forEach(id => {
+        ['sv-pa', 'sv-fc', 'sv-temp', 'sv-spo2', 'sv-fr', 'sv-gluc'].forEach(id => {
           document.getElementById(id).className = 'w-full px-2 py-2 text-center text-sm rounded-xl border outline-none bg-white/5 border-white/20 text-white placeholder-slate-500';
         });
-        ['label-pa', 'label-fc', 'label-temp', 'label-spo2', 'label-fr'].forEach(id => {
+        ['label-pa', 'label-fc', 'label-temp', 'label-spo2', 'label-fr', 'label-gluc'].forEach(id => {
           document.getElementById(id).className = 'text-xs font-semibold block text-center mb-1 text-slate-400';
         });
       } else {
@@ -902,6 +1359,8 @@
         document.getElementById('titulo-guardia').className = 'text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-600';
         document.getElementById('subtitulo-guardia').className = 'text-xs font-semibold text-slate-500';
         document.getElementById('btn-home-guardia').className = 'px-3 py-2 rounded-xl flex items-center gap-1.5 font-semibold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200';
+        document.getElementById('alarm-toggle-container').className = 'alarm-toggle bg-slate-100';
+        document.getElementById('alarm-toggle-label').className = 'text-xs font-semibold text-slate-600';
         document.getElementById('badge-hora-guardia').className = 'px-3 py-1.5 rounded-xl flex items-center gap-2 bg-amber-100';
         document.getElementById('icono-guardia').innerHTML = '<svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
         document.getElementById('hora-guardia').className = 'text-sm font-bold text-amber-700';
@@ -919,10 +1378,10 @@
         document.getElementById('seccion-rotaciones-guardia').className = 'rounded-2xl p-4 border bg-white shadow-lg border-slate-100';
         
         // Inputs
-        ['sv-pa', 'sv-fc', 'sv-temp', 'sv-spo2', 'sv-fr'].forEach(id => {
+        ['sv-pa', 'sv-fc', 'sv-temp', 'sv-spo2', 'sv-fr', 'sv-gluc'].forEach(id => {
           document.getElementById(id).className = 'w-full px-2 py-2 text-center text-sm rounded-xl border outline-none border-slate-200 focus:border-amber-400';
         });
-        ['label-pa', 'label-fc', 'label-temp', 'label-spo2', 'label-fr'].forEach(id => {
+        ['label-pa', 'label-fc', 'label-temp', 'label-spo2', 'label-fr', 'label-gluc'].forEach(id => {
           document.getElementById(id).className = 'text-xs font-semibold block text-center mb-1 text-slate-500';
         });
       }
@@ -1091,6 +1550,7 @@
       }
       renderizarMedicacionGuardia();
       actualizarProgreso();
+      guardarEstado();
     }
 
     function toggleTarea(id) {
@@ -1101,6 +1561,7 @@
       }
       renderizarTareasGuardia();
       actualizarProgreso();
+      guardarEstado();
     }
 
     function agregarRotacion(posicion) {
@@ -1110,6 +1571,7 @@
         hora: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
       });
       renderizarRotacionesGuardia();
+      guardarEstado();
     }
 
     function toggleSeccion(id) {
@@ -1311,7 +1773,8 @@
         fc: document.getElementById('sv-fc').value,
         temp: document.getElementById('sv-temp').value,
         spo2: document.getElementById('sv-spo2').value,
-        fr: document.getElementById('sv-fr').value
+        fr: document.getElementById('sv-fr').value,
+        gluc: document.getElementById('sv-gluc').value
       };
       
       document.getElementById('lista-sv-informe').innerHTML = [
@@ -1319,7 +1782,8 @@
         { label: 'FC', value: sv.fc },
         { label: 'T°', value: sv.temp },
         { label: 'SpO2', value: sv.spo2 },
-        { label: 'FR', value: sv.fr }
+        { label: 'FR', value: sv.fr },
+        { label: 'Gluc 🩸', value: sv.gluc }
       ].map(s => `
         <div class="p-2 rounded-xl text-center ${esNocturna ? 'bg-white/5' : 'bg-slate-50'}">
           <p class="text-xs font-semibold ${esNocturna ? 'text-slate-400' : 'text-slate-500'}">${s.label}</p>
@@ -1338,7 +1802,7 @@
       textoBtn.textContent = '✓ ¡Informe Enviado!';
       
       // Log del informe
-      console.log('Informe enviado:', {
+      const informe = {
         fecha: new Date().toLocaleString('es-AR'),
         guardia: guardiaActual,
         enfermero,
@@ -1351,10 +1815,15 @@
           fc: document.getElementById('sv-fc').value,
           temp: document.getElementById('sv-temp').value,
           spo2: document.getElementById('sv-spo2').value,
-          fr: document.getElementById('sv-fr').value
+          fr: document.getElementById('sv-fr').value,
+          gluc: document.getElementById('sv-gluc').value
         },
         observaciones: document.getElementById('input-observaciones').value
-      });
+      };
+      console.log('Informe enviado:', informe);
+      
+      // Limpiar guardia después de enviar
+      limpiarGuardia();
       
       setTimeout(() => {
         const esNocturna = guardiaActual === 'nocturna';
@@ -1366,7 +1835,13 @@
           btn.classList.add('from-amber-400', 'to-orange-500');
         }
         textoBtn.textContent = 'Enviar Informe al Administrador';
-      }, 3000);
+        
+        // Preguntar si quiere volver al inicio
+        if (confirm('¡Informe enviado!\n\n¿Querés volver a la pantalla de inicio?')) {
+          if (checkAlarmsInterval) clearInterval(checkAlarmsInterval);
+          volverInicio();
+        }
+      }, 2000);
     }
 
     // ==================== INICIALIZACIÓN ====================
@@ -1376,54 +1851,103 @@
     actualizarHora();
     setInterval(actualizarHora, 1000);
 
+    // Verificar si hay una sesión guardada
+    window.addEventListener('load', function() {
+      const estadoGuardado = cargarEstado();
+      if (estadoGuardado) {
+        const tiempoTranscurrido = Math.round((Date.now() - estadoGuardado.timestamp) / 60000);
+        const mensaje = `Se encontró una guardia ${estadoGuardado.guardiaActual} en progreso.\n\n` +
+          `Enfermero/a: ${estadoGuardado.enfermero}\n` +
+          `Auxiliar: ${estadoGuardado.auxiliar}\n` +
+          `Última actividad: hace ${tiempoTranscurrido} minutos\n\n` +
+          `¿Querés continuar con esa guardia?`;
+        
+        if (confirm(mensaje)) {
+          const signosVitales = restaurarEstado(estadoGuardado);
+          validarFormulario();
+          iniciarGuardia(estadoGuardado.guardiaActual, signosVitales);
+        } else {
+          limpiarGuardia();
+        }
+      }
+    });
+
     // ==================== PWA INSTALLATION ====================
     let deferredPrompt;
     const installBanner = document.getElementById('install-banner');
 
+    // Detectar si ya está instalada como PWA
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                         window.navigator.standalone === true;
+    
+    if (isStandalone) {
+      console.log('[PWA] App ejecutándose en modo standalone');
+      installBanner.style.display = 'none';
+    }
+
     window.addEventListener('beforeinstallprompt', (e) => {
+      console.log('[PWA] beforeinstallprompt disparado');
       e.preventDefault();
       deferredPrompt = e;
-      // Mostrar banner después de 3 segundos si no está instalada
-      setTimeout(() => {
-        if (deferredPrompt && !window.matchMedia('(display-mode: standalone)').matches) {
+      
+      // Mostrar banner si no está instalada y no se cerró antes
+      if (!sessionStorage.getItem('installBannerClosed') && !isStandalone) {
+        setTimeout(() => {
           installBanner.classList.add('show');
-        }
-      }, 3000);
+        }, 2000);
+      }
+    });
+
+    window.addEventListener('appinstalled', (e) => {
+      console.log('[PWA] App instalada exitosamente');
+      installBanner.classList.remove('show');
+      deferredPrompt = null;
     });
 
     function installPWA() {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted') {
-            console.log('PWA instalada');
-          }
-          deferredPrompt = null;
-          installBanner.classList.remove('show');
-        });
+      if (!deferredPrompt) {
+        // Si no hay prompt, mostrar instrucciones
+        alert('Para instalar la app:\n\n' +
+              '📱 Android (Chrome):\n' +
+              'Menú ⋮ → "Instalar aplicación"\n\n' +
+              '📱 iPhone (Safari):\n' +
+              'Compartir → "Agregar a inicio"');
+        return;
       }
+      
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        console.log('[PWA] Usuario eligió:', choiceResult.outcome);
+        deferredPrompt = null;
+        installBanner.classList.remove('show');
+      });
     }
 
     function closeInstallBanner() {
       installBanner.classList.remove('show');
-      // No mostrar de nuevo en esta sesión
       sessionStorage.setItem('installBannerClosed', 'true');
-    }
-
-    // No mostrar si ya se cerró en esta sesión
-    if (sessionStorage.getItem('installBannerClosed')) {
-      installBanner.style.display = 'none';
-    }
-
-    // Detectar si ya está instalada
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      installBanner.style.display = 'none';
     }
 
     // Registrar Service Worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(() => {
-        // Service worker no disponible, la app funciona igual
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((registration) => {
+            console.log('[SW] Registrado con scope:', registration.scope);
+            
+            // Verificar actualizaciones
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('[SW] Nueva versión disponible');
+                }
+              });
+            });
+          })
+          .catch((error) => {
+            console.log('[SW] Error en registro:', error);
+          });
       });
     }
   </script>

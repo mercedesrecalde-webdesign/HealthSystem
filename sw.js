@@ -1,66 +1,97 @@
-const CACHE_NAME = 'recalde-health-v1';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
+const CACHE_NAME = 'recalde-health-v2';
+const OFFLINE_URL = './index.html';
+
+const ASSETS_TO_CACHE = [
+  './',
+  './index.html',
+  './manifest.json'
 ];
 
-// Instalar service worker y cachear archivos
+// Instalación
 self.addEventListener('install', (event) => {
+  console.log('[SW] Instalando...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        return cache.addAll(urlsToCache).catch(() => {
-          // Si falla el cache, continuar igual
-        });
+        console.log('[SW] Cacheando archivos');
+        return cache.addAll(ASSETS_TO_CACHE);
+      })
+      .then(() => {
+        console.log('[SW] Instalación completa');
+        return self.skipWaiting();
+      })
+      .catch((error) => {
+        console.log('[SW] Error en instalación:', error);
       })
   );
-  self.skipWaiting();
 });
 
-// Limpiar caches antiguos
+// Activación
 self.addEventListener('activate', (event) => {
+  console.log('[SW] Activando...');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches.keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames
+            .filter((name) => name !== CACHE_NAME)
+            .map((name) => {
+              console.log('[SW] Eliminando cache viejo:', name);
+              return caches.delete(name);
+            })
+        );
+      })
+      .then(() => {
+        console.log('[SW] Activación completa');
+        return self.clients.claim();
+      })
   );
-  self.clients.claim();
 });
 
-// Estrategia: Network first, fallback to cache
+// Fetch - Network first, fallback to cache
 self.addEventListener('fetch', (event) => {
+  // Solo manejar requests GET
+  if (event.request.method !== 'GET') return;
+  
+  // Ignorar requests de chrome-extension, etc
+  if (!event.request.url.startsWith('http')) return;
+  
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Clonar la respuesta para guardar en cache
-        const responseClone = response.clone();
-        caches.open(CACHE_NAME)
-          .then((cache) => {
-            cache.put(event.request, responseClone);
-          });
+        // Si la respuesta es válida, guardar en cache
+        if (response && response.status === 200) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME)
+            .then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+        }
         return response;
       })
       .catch(() => {
         // Si falla la red, buscar en cache
         return caches.match(event.request)
-          .then((response) => {
-            if (response) {
-              return response;
+          .then((cachedResponse) => {
+            if (cachedResponse) {
+              return cachedResponse;
             }
-            // Si no hay cache, devolver página offline básica
+            // Si es navegación, devolver página offline
             if (event.request.mode === 'navigate') {
-              return caches.match('/index.html');
+              return caches.match(OFFLINE_URL);
             }
+            return new Response('Offline', {
+              status: 503,
+              statusText: 'Service Unavailable'
+            });
           });
       })
   );
+});
+
+// Mensaje para forzar actualización
+self.addEventListener('message', (event) => {
+  if (event.data === 'skipWaiting') {
+    self.skipWaiting();
+  }
 });
