@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="Sistema de gestión de cuidados de enfermería para Patricio Recalde">
+  <meta name="theme-color" content="#14b8a6">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Recalde Health">
+  <meta name="application-name" content="Recalde Health">
+  <meta name="msapplication-TileColor" content="#14b8a6">
+  <meta name="format-detection" content="telephone=no">
+  <title>Recalde Health System</title>
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  
+  <!-- Fallback favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%2314b8a6' rx='20' width='100' height='100'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white'>♥</text></svg>">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { margin: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased; }
+    input, button, select, textarea { font-family: inherit; font-size: 16px; }
+    .hidden { display: none !important; }
+    .check-btn { transition: all 0.3s ease; }
+    .check-btn:active { transform: scale(0.95); }
+    .section-btn:active { transform: scale(0.98); }
+    
+    /* Safe area para notch en Android/iOS */
+    .safe-top { padding-top: env(safe-area-inset-top); }
+    .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+    
+    /* Banner de instalación */
+    .install-banner {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(135deg, #14b8a6 0%, #0891b2 100%);
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      z-index: 9999;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+    }
+    .install-banner.show { transform: translateY(0); }
+    .install-banner button {
+      background: white;
+      color: #0891b2;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .install-banner .close-btn {
+      background: transparent;
+      color: white;
+      padding: 8px;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Banner de instalación PWA -->
+  <div id="install-banner" class="install-banner">
+    <div style="flex: 1;">
+      <strong>📱 Instalar App</strong>
+      <p style="margin: 4px 0 0; font-size: 13px; opacity: 0.9;">Agregá Recalde Health a tu pantalla de inicio</p>
+    </div>
+    <button onclick="installPWA()">Instalar</button>
+    <button class="close-btn" onclick="closeInstallBanner()">✕</button>
+  </div>
+
+  <!-- ==================== PANTALLA DE INICIO ==================== -->
+  <div id="pantalla-inicio" class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 flex items-center justify-center">
+    <div class="w-full max-w-md">
+      <!-- Logo -->
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-28 h-28 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-3xl shadow-2xl mb-6 relative">
+          <svg class="w-14 h-14 text-white" fill="white" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+          </svg>
+          <div class="absolute -bottom-1 -right-1 w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/>
+              <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/>
+            </svg>
+          </div>
+        </div>
+        <h1 class="text-4xl font-black text-white tracking-tight mb-1">Recalde Health</h1>
+        <p class="text-xl font-bold text-teal-400">System</p>
+        <p class="text-slate-400 mt-2 font-medium">Plan de Cuidados - Patricio Recalde</p>
+      </div>
+
+      <!-- Formulario -->
+      <div class="bg-white/10 backdrop-blur-xl rounded-3xl p-6 border border-white/20 mb-6">
+        <div class="space-y-4 mb-6">
+          <div>
+            <label class="flex items-center gap-2 text-sm font-semibold text-slate-300 mb-2">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+              Enfermero/a a Cargo
+            </label>
+            <input type="text" id="input-enfermero" class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:border-teal-400 focus:outline-none transition-all text-lg font-medium" placeholder="Nombre completo">
+          </div>
+          <div>
+            <label class="flex items-center gap-2 text-sm font-semibold text-slate-300 mb-2">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              Auxiliar de Enfermería
+            </label>
+            <input type="text" id="input-auxiliar" class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:border-teal-400 focus:outline-none transition-all text-lg font-medium" placeholder="Nombre completo">
+          </div>
+        </div>
+
+        <!-- Botones de guardia -->
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <button onclick="iniciarGuardia('diurna')" id="btn-diurna" class="p-4 rounded-2xl transition-all duration-300 bg-slate-700 text-slate-500 cursor-not-allowed" disabled>
+            <svg class="w-8 h-8 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+            </svg>
+            <p class="font-bold text-lg">Diurna</p>
+            <p class="text-sm opacity-80">08:00 - 20:00</p>
+          </button>
+          <button onclick="iniciarGuardia('nocturna')" id="btn-nocturna" class="p-4 rounded-2xl transition-all duration-300 bg-slate-700 text-slate-500 cursor-not-allowed" disabled>
+            <svg class="w-8 h-8 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+            <p class="font-bold text-lg">Nocturna</p>
+            <p class="text-sm opacity-80">20:00 - 08:00</p>
+          </button>
+        </div>
+      </div>
+
+      <!-- Botón Admin -->
+      <button onclick="mostrarLoginAdmin()" class="w-full py-3 bg-white/5 border border-white/10 rounded-2xl text-slate-400 font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-all">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        Panel de Administración
+      </button>
+
+      <!-- Hora actual -->
+      <div class="text-center mt-6">
+        <p id="fecha-actual" class="text-slate-500 font-medium"></p>
+        <p id="hora-actual" class="text-3xl font-bold text-white font-mono"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== LOGIN ADMIN ==================== -->
+  <div id="pantalla-login-admin" class="hidden min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 flex items-center justify-center">
+    <div class="w-full max-w-sm">
+      <button onclick="volverInicio()" class="mb-6 text-slate-400 flex items-center gap-2 hover:text-white transition-all">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>
+        </svg>
+        Volver al inicio
+      </button>
+      <div class="bg-white/10 backdrop-blur-xl rounded-3xl p-6 border border-white/20">
+        <div class="text-center mb-6">
+          <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl mb-4">
+            <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold text-white">Administrador</h2>
+        </div>
+        <input type="password" id="input-admin-password" class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:border-violet-400 focus:outline-none mb-4" placeholder="Contraseña">
+        <button onclick="loginAdmin()" class="w-full py-3 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-bold hover:shadow-lg transition-all">
+          Ingresar
+        </button>
+        <p class="text-xs text-slate-500 text-center mt-3">Contraseña: recalde2024</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PANEL ADMIN ==================== -->
+  <div id="pantalla-admin" class="hidden min-h-screen bg-gradient-to-br from-slate-100 to-slate-200">
+    <!-- Header Admin -->
+    <div class="bg-gradient-to-r from-violet-600 to-purple-600 text-white p-4 sticky top-0 z-50">
+      <div class="max-w-4xl mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          <div>
+            <h1 class="text-xl font-bold">Panel de Administración</h1>
+            <p class="text-sm text-white/70">Recalde Health System</p>
+          </div>
+        </div>
+        <button onclick="volverInicio()" class="px-4 py-2 bg-white/20 rounded-xl font-semibold hover:bg-white/30 transition-all">
+          Salir
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="bg-white border-b sticky top-16 z-40">
+      <div class="max-w-4xl mx-auto flex">
+        <button onclick="cambiarTabAdmin('medicacion')" id="tab-medicacion" class="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-violet-600 border-b-2 border-violet-600 bg-violet-50">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/>
+          </svg>
+          Medicación
+        </button>
+        <button onclick="cambiarTabAdmin('tareas')" id="tab-tareas" class="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-slate-500 hover:text-slate-700">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+          </svg>
+          Tareas
+        </button>
+        <button onclick="cambiarTabAdmin('rotacion')" id="tab-rotacion" class="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-slate-500 hover:text-slate-700">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+          </svg>
+          Rotación
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenido Admin -->
+    <div class="max-w-4xl mx-auto p-4">
+      <!-- Tab Medicación -->
+      <div id="content-medicacion">
+        <div class="bg-white rounded-2xl shadow-lg p-4 mb-4">
+          <h3 class="font-bold text-lg text-slate-800 mb-4">➕ Agregar Medicación</h3>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <input type="time" id="nuevo-med-hora" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+            <select id="nuevo-med-guardia" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+              <option value="diurna">Guardia Diurna</option>
+              <option value="nocturna">Guardia Nocturna</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-4 gap-2 mb-3">
+            <input type="text" id="nuevo-med-nombre" placeholder="Medicamento" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+            <input type="text" id="nuevo-med-dosis" placeholder="Dosis" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+            <input type="text" id="nuevo-med-cantidad" placeholder="Cantidad" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+            <input type="text" id="nuevo-med-obs" placeholder="Observaciones" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+          </div>
+          <button onclick="agregarMedicacion()" class="px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all">
+            💾 Guardar
+          </button>
+        </div>
+        <h3 class="font-bold text-lg text-slate-700 mb-3">Medicación Programada</h3>
+        <div id="lista-medicacion" class="space-y-3"></div>
+      </div>
+
+      <!-- Tab Tareas -->
+      <div id="content-tareas" class="hidden">
+        <div class="bg-white rounded-2xl shadow-lg p-4 mb-4">
+          <h3 class="font-bold text-lg text-slate-800 mb-4">➕ Agregar Tarea</h3>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <input type="text" id="nueva-tarea-nombre" placeholder="Nombre de la tarea" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+            <input type="text" id="nueva-tarea-horario" placeholder="Horario" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+          </div>
+          <textarea id="nueva-tarea-detalle" placeholder="Detalle / Instrucciones" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none mb-3" rows="2"></textarea>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <select id="nueva-tarea-guardia" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+              <option value="diurna">Guardia Diurna</option>
+              <option value="nocturna">Guardia Nocturna</option>
+              <option value="ambas">Ambas Guardias</option>
+            </select>
+            <select id="nueva-tarea-tipo" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+              <option value="csv">Control Signos Vitales</option>
+              <option value="higiene">Higiene</option>
+              <option value="alimentacion">Alimentación</option>
+              <option value="hidratacion">Hidratación</option>
+              <option value="rotacion">Rotación</option>
+              <option value="movilidad">Movilidad</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+          <button onclick="agregarTarea()" class="px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all">
+            💾 Guardar Tarea
+          </button>
+        </div>
+        <h3 class="font-bold text-lg text-slate-700 mb-3">Tareas Programadas</h3>
+        <div id="lista-tareas" class="space-y-3"></div>
+      </div>
+
+      <!-- Tab Rotación -->
+      <div id="content-rotacion" class="hidden">
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-4">
+          <h3 class="font-bold text-lg text-slate-800 mb-4">Puntos de Control en Rotación</h3>
+          <div id="lista-controles" class="space-y-2 mb-4"></div>
+          <div class="flex gap-2">
+            <input type="text" id="nuevo-control" placeholder="Nuevo punto de control" class="flex-1 px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+            <button onclick="agregarControl()" class="px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-semibold">
+              ➕
+            </button>
+          </div>
+        </div>
+        <div class="bg-gradient-to-br from-violet-50 to-purple-50 rounded-2xl p-6 border border-violet-100">
+          <h3 class="font-bold text-lg text-violet-800 mb-3">Secuencia de Rotación</h3>
+          <div class="flex items-center gap-2 flex-wrap text-sm">
+            <span class="px-3 py-1 bg-white rounded-lg font-semibold text-slate-700 shadow-sm">Decúbito Dorsal</span>
+            <span class="text-violet-400">→</span>
+            <span class="px-3 py-1 bg-white rounded-lg font-semibold text-slate-700 shadow-sm">Lateral Der 30°</span>
+            <span class="text-violet-400">→</span>
+            <span class="px-3 py-1 bg-white rounded-lg font-semibold text-slate-700 shadow-sm">Decúbito Dorsal</span>
+            <span class="text-violet-400">→</span>
+            <span class="px-3 py-1 bg-white rounded-lg font-semibold text-slate-700 shadow-sm">Lateral Izq 30°</span>
+            <span class="text-violet-400">→</span>
+            <span class="text-violet-400 font-bold">Repetir</span>
+          </div>
+          <div class="mt-4 p-3 bg-amber-50 rounded-xl border border-amber-200">
+            <p class="text-sm text-amber-800">
+              ⚠️ <strong>Nota:</strong> Durante la noche, espaciar rotaciones si el paciente está durmiendo.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== VISTA DE GUARDIA ==================== -->
+  <div id="pantalla-guardia" class="hidden min-h-screen">
+    <!-- Header Guardia -->
+    <div id="header-guardia" class="sticky top-0 z-50 p-4">
+      <div class="max-w-2xl mx-auto">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div id="logo-guardia" class="p-2 rounded-xl shadow-lg">
+              <svg class="w-6 h-6 text-white" fill="white" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                <path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/>
+              </svg>
+            </div>
+            <div>
+              <h1 id="titulo-guardia" class="text-lg font-black">Recalde Health</h1>
+              <p id="subtitulo-guardia" class="text-xs font-semibold">Patricio Recalde</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="confirmarSalir()" id="btn-home-guardia" class="px-3 py-2 rounded-xl flex items-center gap-1.5 font-semibold text-sm">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+              </svg>
+              Salir
+            </button>
+            <div id="badge-hora-guardia" class="px-3 py-1.5 rounded-xl flex items-center gap-2">
+              <span id="icono-guardia"></span>
+              <span id="hora-guardia" class="text-sm font-bold"></span>
+            </div>
+          </div>
+        </div>
+
+        <div id="info-personal-guardia" class="flex items-center gap-4 mt-3 text-xs"></div>
+
+        <div class="mt-3">
+          <div class="flex justify-between items-center mb-1">
+            <span id="label-progreso" class="text-xs font-semibold">Progreso de guardia</span>
+            <span id="valor-progreso" class="text-sm font-black">0%</span>
+          </div>
+          <div id="barra-progreso-bg" class="h-2 rounded-full overflow-hidden">
+            <div id="barra-progreso" class="h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenido Guardia -->
+    <div class="max-w-2xl mx-auto p-4 pb-28 space-y-4">
+      <!-- Signos Vitales -->
+      <div id="card-signos-vitales" class="rounded-3xl p-4 border">
+        <div class="flex items-center gap-3 mb-4">
+          <div id="icono-sv" class="p-2 rounded-xl">
+            <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/>
+              <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/>
+            </svg>
+          </div>
+          <div>
+            <h2 id="titulo-sv" class="text-lg font-bold">Control de Signos Vitales</h2>
+            <p id="subtitulo-sv" class="text-xs">Registrar al inicio de la guardia</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-5 gap-2">
+          <div>
+            <label id="label-pa" class="text-xs font-semibold block text-center mb-1">PA</label>
+            <input type="text" id="sv-pa" placeholder="120/80" class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
+          </div>
+          <div>
+            <label id="label-fc" class="text-xs font-semibold block text-center mb-1">FC</label>
+            <input type="text" id="sv-fc" placeholder="70" class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
+          </div>
+          <div>
+            <label id="label-temp" class="text-xs font-semibold block text-center mb-1">T°</label>
+            <input type="text" id="sv-temp" placeholder="36.5" class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
+          </div>
+          <div>
+            <label id="label-spo2" class="text-xs font-semibold block text-center mb-1">SpO2</label>
+            <input type="text" id="sv-spo2" placeholder="98" class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
+          </div>
+          <div>
+            <label id="label-fr" class="text-xs font-semibold block text-center mb-1">FR</label>
+            <input type="text" id="sv-fr" placeholder="16" class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección Medicación -->
+      <div>
+        <button onclick="toggleSeccion('medicacion-guardia')" id="btn-seccion-medicacion" class="section-btn w-full flex items-center justify-between p-4 rounded-2xl mb-3 bg-gradient-to-r from-rose-400 to-pink-500">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-white/30 rounded-xl backdrop-blur-sm">
+              <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/>
+              </svg>
+            </div>
+            <h2 class="text-xl font-bold text-white tracking-tight">Medicación</h2>
+          </div>
+          <svg id="chevron-medicacion" class="w-6 h-6 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="m18 15-6-6-6 6"/>
+          </svg>
+        </button>
+        <div id="seccion-medicacion-guardia" class="space-y-3"></div>
+      </div>
+
+      <!-- Sección Tareas -->
+      <div>
+        <button onclick="toggleSeccion('tareas-guardia')" id="btn-seccion-tareas" class="section-btn w-full flex items-center justify-between p-4 rounded-2xl mb-3 bg-gradient-to-r from-sky-400 to-blue-500">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-white/30 rounded-xl backdrop-blur-sm">
+              <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+              </svg>
+            </div>
+            <h2 class="text-xl font-bold text-white tracking-tight">Tareas de Cuidado</h2>
+          </div>
+          <svg id="chevron-tareas" class="w-6 h-6 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="m18 15-6-6-6 6"/>
+          </svg>
+        </button>
+        <div id="seccion-tareas-guardia" class="space-y-3"></div>
+      </div>
+
+      <!-- Sección Rotaciones -->
+      <div>
+        <button onclick="toggleSeccion('rotaciones-guardia')" id="btn-seccion-rotaciones" class="section-btn w-full flex items-center justify-between p-4 rounded-2xl mb-3 bg-gradient-to-r from-violet-400 to-purple-500">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-white/30 rounded-xl backdrop-blur-sm">
+              <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+              </svg>
+            </div>
+            <h2 id="titulo-rotaciones" class="text-xl font-bold text-white tracking-tight">Rotaciones (0)</h2>
+          </div>
+          <svg id="chevron-rotaciones" class="w-6 h-6 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="m18 15-6-6-6 6"/>
+          </svg>
+        </button>
+        <div id="seccion-rotaciones-guardia" class="rounded-2xl p-4 border"></div>
+      </div>
+    </div>
+
+    <!-- Botón Flotante Informe -->
+    <div id="footer-guardia" class="fixed bottom-0 left-0 right-0 p-4">
+      <div class="max-w-2xl mx-auto">
+        <button onclick="mostrarInforme()" id="btn-generar-informe" class="w-full py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 font-bold text-lg transition-all text-white">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+          </svg>
+          Generar Informe de Guardia
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PANTALLA INFORME ==================== -->
+  <div id="pantalla-informe" class="hidden min-h-screen p-4">
+    <div class="max-w-2xl mx-auto">
+      <div id="card-informe-header" class="rounded-3xl p-6 mb-4 border">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div id="icono-informe" class="p-3 rounded-2xl">
+              <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+              </svg>
+            </div>
+            <div>
+              <h1 id="titulo-informe" class="text-2xl font-black">Informe de Guardia</h1>
+              <p id="fecha-informe" class=""></p>
+            </div>
+          </div>
+          <button onclick="volverGuardia()" id="btn-volver-informe" class="px-4 py-2 rounded-xl font-semibold transition-all">
+            Volver
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div id="card-paciente" class="p-4 rounded-2xl">
+            <p id="label-paciente" class="text-xs font-semibold uppercase tracking-wider">Paciente</p>
+            <p id="valor-paciente" class="text-lg font-bold">Patricio Recalde</p>
+          </div>
+          <div id="card-guardia-info" class="p-4 rounded-2xl">
+            <p id="label-guardia-info" class="text-xs font-semibold uppercase tracking-wider">Guardia</p>
+            <p id="valor-guardia-info" class="text-lg font-bold"></p>
+          </div>
+          <div id="card-enfermero" class="p-4 rounded-2xl">
+            <p id="label-enfermero" class="text-xs font-semibold uppercase tracking-wider">Enfermero/a</p>
+            <p id="valor-enfermero" class="font-bold"></p>
+          </div>
+          <div id="card-auxiliar" class="p-4 rounded-2xl">
+            <p id="label-auxiliar" class="text-xs font-semibold uppercase tracking-wider">Auxiliar</p>
+            <p id="valor-auxiliar" class="font-bold"></p>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <div class="flex justify-between items-center mb-2">
+            <span id="label-progreso-informe" class="font-semibold">Progreso General</span>
+            <span id="valor-progreso-informe" class="text-2xl font-black">0%</span>
+          </div>
+          <div id="barra-progreso-informe-bg" class="h-4 rounded-full overflow-hidden">
+            <div id="barra-progreso-informe" class="h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen Medicación -->
+      <div id="card-resumen-medicacion" class="rounded-2xl p-4 mb-3 border">
+        <div class="flex items-center gap-2 mb-3">
+          <svg id="icono-med-informe" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/>
+          </svg>
+          <h3 id="titulo-med-informe" class="font-bold">Medicación</h3>
+        </div>
+        <div id="lista-med-informe" class="space-y-2"></div>
+      </div>
+
+      <!-- Resumen Tareas -->
+      <div id="card-resumen-tareas" class="rounded-2xl p-4 mb-3 border">
+        <div class="flex items-center gap-2 mb-3">
+          <svg id="icono-tar-informe" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+          </svg>
+          <h3 id="titulo-tar-informe" class="font-bold">Tareas de Cuidado</h3>
+        </div>
+        <div id="lista-tar-informe" class="grid grid-cols-2 gap-2"></div>
+      </div>
+
+      <!-- Resumen Rotaciones -->
+      <div id="card-resumen-rotaciones" class="rounded-2xl p-4 mb-3 border">
+        <div class="flex items-center gap-2 mb-3">
+          <svg id="icono-rot-informe" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+          </svg>
+          <h3 id="titulo-rot-informe" class="font-bold">Rotaciones Realizadas: 0</h3>
+        </div>
+        <div id="lista-rot-informe" class="space-y-2"></div>
+      </div>
+
+      <!-- Resumen Signos Vitales -->
+      <div id="card-resumen-sv" class="rounded-2xl p-4 mb-3 border">
+        <div class="flex items-center gap-2 mb-3">
+          <svg id="icono-sv-informe" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+          <h3 id="titulo-sv-informe" class="font-bold">Signos Vitales</h3>
+        </div>
+        <div id="lista-sv-informe" class="grid grid-cols-5 gap-2"></div>
+      </div>
+
+      <!-- Observaciones -->
+      <div id="card-observaciones" class="rounded-2xl p-4 mb-4 border">
+        <h3 id="titulo-obs" class="font-bold mb-2">Observaciones</h3>
+        <textarea id="input-observaciones" class="w-full p-3 rounded-xl border-2 outline-none min-h-24" placeholder="Agregar observaciones relevantes..."></textarea>
+      </div>
+
+      <!-- Botón Enviar -->
+      <button onclick="enviarInforme()" id="btn-enviar-informe" class="w-full py-4 rounded-2xl text-lg font-bold tracking-wide transition-all duration-300 flex items-center justify-center gap-3 text-white">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>
+        </svg>
+        <span id="texto-btn-enviar">Enviar Informe al Administrador</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ==================== DATOS ====================
+    let medicacion = [
+      { id: 1, hora: "05:00", medicamentos: [{ nombre: "Omeprazol", dosis: "20 mg", cantidad: "1 comp", observaciones: "En ayunas" }], guardia: "nocturna" },
+      { id: 2, hora: "06:00", medicamentos: [{ nombre: "Lorazepam", dosis: "2,5 mg", cantidad: "1 comp", observaciones: "" }, { nombre: "Salbutamol", dosis: "4 puff", cantidad: "", observaciones: "Inhalatorio por TQT (ARM)" }], guardia: "nocturna" },
+      { id: 3, hora: "08:00", medicamentos: [{ nombre: "Levetiracetam", dosis: "1 g", cantidad: "2 comp", observaciones: "" }, { nombre: "Vigabatrina", dosis: "500 mg", cantidad: "1 comp", observaciones: "" }, { nombre: "Oxcarbazepina", dosis: "300 mg", cantidad: "1 comp", observaciones: "" }, { nombre: "Ácido Valproico", dosis: "500 mg", cantidad: "1 comp", observaciones: "" }], guardia: "diurna" },
+      { id: 4, hora: "11:00", medicamentos: [{ nombre: "Cinitaprida", dosis: "1 mg", cantidad: "1 comp", observaciones: "" }, { nombre: "Citrato de K", dosis: "1620 mg", cantidad: "1 comp", observaciones: "" }], guardia: "diurna" },
+      { id: 5, hora: "12:00", medicamentos: [{ nombre: "Lorazepam", dosis: "2,5 mg", cantidad: "1 comp", observaciones: "" }, { nombre: "Salbutamol", dosis: "4 puff", cantidad: "", observaciones: "Inhalatorio por TQT (ARM)" }], guardia: "diurna" },
+      { id: 6, hora: "16:00", medicamentos: [{ nombre: "Vigabatrina", dosis: "500 mg", cantidad: "1 comp", observaciones: "" }, { nombre: "Oxcarbazepina", dosis: "300 mg", cantidad: "1 comp", observaciones: "" }], guardia: "diurna" },
+      { id: 7, hora: "17:00", medicamentos: [{ nombre: "Cinitaprida", dosis: "1 mg", cantidad: "1 comp", observaciones: "" }, { nombre: "Citrato de K", dosis: "1620 mg", cantidad: "1 comp", observaciones: "" }], guardia: "diurna" },
+      { id: 8, hora: "18:00", medicamentos: [{ nombre: "Lorazepam", dosis: "2,5 mg", cantidad: "1 comp", observaciones: "" }, { nombre: "Salbutamol", dosis: "4 puff", cantidad: "", observaciones: "Inhalatorio por TQT (ARM)" }], guardia: "diurna" },
+      { id: 9, hora: "20:00", medicamentos: [{ nombre: "Levetiracetam", dosis: "1,5 g", cantidad: "3 comp", observaciones: "" }, { nombre: "Oxcarbazepina", dosis: "450 mg", cantidad: "3 comp", observaciones: "" }, { nombre: "Ácido Valproico", dosis: "500 mg", cantidad: "1 comp", observaciones: "" }], guardia: "nocturna" },
+      { id: 10, hora: "22:00", medicamentos: [{ nombre: "Lorazepam", dosis: "10 mg", cantidad: "4 comp", observaciones: "" }, { nombre: "Cinitaprida", dosis: "1 mg", cantidad: "1 comp", observaciones: "" }], guardia: "nocturna" },
+      { id: 11, hora: "00:00", medicamentos: [{ nombre: "Lorazepam", dosis: "2,5 mg", cantidad: "1 comp", observaciones: "" }, { nombre: "Vigabatrina", dosis: "500 mg", cantidad: "1 comp", observaciones: "" }, { nombre: "Salbutamol", dosis: "4 puff", cantidad: "", observaciones: "Inhalatorio por TQT (ARM)" }], guardia: "nocturna" },
+      { id: 12, hora: "03:00", medicamentos: [{ nombre: "BAREX", dosis: "S/N", cantidad: "", observaciones: "Sólo si es necesario - Control catarsis" }], guardia: "nocturna" },
+    ];
+
+    let tareas = [
+      { id: 1, nombre: "CSV - Control Signos Vitales", horario: "Inicio guardia", detalle: "Pase de guardia en domicilio y revisión completa de Patricio", guardia: "ambas", tipo: "csv" },
+      { id: 2, nombre: "Rotación Postural", horario: "Cada 2 horas", detalle: "Según esquema: Dorsal → Lateral Der 30° → Dorsal → Lateral Izq 30°. Noche: espaciar si duerme", guardia: "ambas", tipo: "rotacion" },
+      { id: 3, nombre: "Hidratación por Gastrostomía", horario: "Permanente", detalle: "Agua 2 lt total repartido entre ambas guardias", guardia: "ambas", tipo: "hidratacion" },
+      { id: 4, nombre: "Hidratación por Boca", horario: "Permanente", detalle: "Gasa humedecida en jugo (suspender si duerme)", guardia: "ambas", tipo: "hidratacion" },
+      { id: 5, nombre: "Colación (Post Omeprazol)", horario: "06:00", detalle: "Té con galletitas o vainillas x GTT", guardia: "nocturna", tipo: "alimentacion" },
+      { id: 6, nombre: "Desayuno", horario: "10:00", detalle: "Leche con cereales o yogurt", guardia: "diurna", tipo: "alimentacion" },
+      { id: 7, nombre: "Baño Completo", horario: "12:00-13:00", detalle: "Higiene y confort. Revisar: boca, lengua, conjuntiva (ojo seco), uñas manos y pies", guardia: "diurna", tipo: "higiene" },
+      { id: 8, nombre: "Almuerzo por Gastrostomía", horario: "Post baño", detalle: "Comida natural (mediodía) - 600 cc x GTT", guardia: "diurna", tipo: "alimentacion" },
+      { id: 9, nombre: "Traslado con Grúa al Sillón", horario: "Post baño", detalle: "Incluye cambio de postura. Máx 4hs en sillón, micro-rotaciones c/30-60 min", guardia: "diurna", tipo: "movilidad" },
+      { id: 10, nombre: "Merienda", horario: "17:00", detalle: "Licuado yogur + fruta (variable) - 250 cc x GTT", guardia: "diurna", tipo: "alimentacion" },
+      { id: 11, nombre: "Cena por Gastrostomía", horario: "Noche", detalle: "Nutrisón - 500 ml x GTT", guardia: "nocturna", tipo: "alimentacion" },
+    ];
+
+    let controlesRotacion = [
+      { id: 1, nombre: "Sacro" },
+      { id: 2, nombre: "Talones" },
+      { id: 3, nombre: "Caderas" },
+      { id: 4, nombre: "Omóplatos" },
+      { id: 5, nombre: "Orejas" },
+      { id: 6, nombre: "TQT visible y libre" },
+      { id: 7, nombre: "Circuito ARM sin tracción" },
+    ];
+
+    let guardiaActual = null;
+    let enfermero = "";
+    let auxiliar = "";
+    let medicacionCompletada = {};
+    let tareasCompletadas = {};
+    let rotacionesRealizadas = [];
+    let seccionesExpandidas = { 'medicacion-guardia': true, 'tareas-guardia': true, 'rotaciones-guardia': true };
+
+    // ==================== FUNCIONES UTILIDAD ====================
+    function actualizarHora() {
+      const now = new Date();
+      const opciones = { weekday: 'long', day: 'numeric', month: 'long' };
+      document.getElementById('fecha-actual').textContent = now.toLocaleDateString('es-AR', opciones);
+      document.getElementById('hora-actual').textContent = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+      
+      if (document.getElementById('hora-guardia')) {
+        document.getElementById('hora-guardia').textContent = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+      }
+    }
+
+    function validarFormulario() {
+      enfermero = document.getElementById('input-enfermero').value.trim();
+      auxiliar = document.getElementById('input-auxiliar').value.trim();
+      
+      const btnDiurna = document.getElementById('btn-diurna');
+      const btnNocturna = document.getElementById('btn-nocturna');
+      
+      if (enfermero && auxiliar) {
+        btnDiurna.disabled = false;
+        btnDiurna.className = 'p-4 rounded-2xl transition-all duration-300 bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg hover:scale-105 active:scale-95 cursor-pointer';
+        btnNocturna.disabled = false;
+        btnNocturna.className = 'p-4 rounded-2xl transition-all duration-300 bg-gradient-to-br from-emerald-400 to-green-500 text-white shadow-lg hover:scale-105 active:scale-95 cursor-pointer';
+      } else {
+        btnDiurna.disabled = true;
+        btnDiurna.className = 'p-4 rounded-2xl transition-all duration-300 bg-slate-700 text-slate-500 cursor-not-allowed';
+        btnNocturna.disabled = true;
+        btnNocturna.className = 'p-4 rounded-2xl transition-all duration-300 bg-slate-700 text-slate-500 cursor-not-allowed';
+      }
+    }
+
+    function mostrarPantalla(id) {
+      ['pantalla-inicio', 'pantalla-login-admin', 'pantalla-admin', 'pantalla-guardia', 'pantalla-informe'].forEach(p => {
+        document.getElementById(p).classList.add('hidden');
+      });
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function volverInicio() {
+      mostrarPantalla('pantalla-inicio');
+      guardiaActual = null;
+    }
+
+    function confirmarSalir() {
+      const completadas = Object.keys(medicacionCompletada).length + Object.keys(tareasCompletadas).length;
+      if (completadas > 0) {
+        if (confirm('¿Estás seguro de que querés salir?\n\nSi no generaste el informe, se perderán los datos de esta guardia.')) {
+          volverInicio();
+        }
+      } else {
+        volverInicio();
+      }
+    }
+
+    // ==================== ADMIN ====================
+    function mostrarLoginAdmin() {
+      mostrarPantalla('pantalla-login-admin');
+    }
+
+    function loginAdmin() {
+      const pass = document.getElementById('input-admin-password').value;
+      if (pass === 'recalde2024') {
+        mostrarPantalla('pantalla-admin');
+        renderizarListaMedicacion();
+        renderizarListaTareas();
+        renderizarListaControles();
+      } else {
+        alert('Contraseña incorrecta');
+      }
+    }
+
+    function cambiarTabAdmin(tab) {
+      ['medicacion', 'tareas', 'rotacion'].forEach(t => {
+        document.getElementById('tab-' + t).className = 'flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-slate-500 hover:text-slate-700';
+        document.getElementById('content-' + t).classList.add('hidden');
+      });
+      document.getElementById('tab-' + tab).className = 'flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-violet-600 border-b-2 border-violet-600 bg-violet-50';
+      document.getElementById('content-' + tab).classList.remove('hidden');
+    }
+
+    function renderizarListaMedicacion() {
+      const lista = document.getElementById('lista-medicacion');
+      lista.innerHTML = medicacion.sort((a, b) => a.hora.localeCompare(b.hora)).map(med => `
+        <div class="bg-white rounded-2xl shadow p-4 border-l-4 ${med.guardia === 'diurna' ? 'border-orange-400' : 'border-green-400'}">
+          <div class="flex justify-between items-start mb-2">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl font-black ${med.guardia === 'diurna' ? 'text-orange-500' : 'text-green-500'}">${med.hora}</span>
+              <span class="text-xs px-2 py-1 rounded-full font-bold ${med.guardia === 'diurna' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}">
+                ${med.guardia === 'diurna' ? 'DIURNA' : 'NOCTURNA'}
+              </span>
+            </div>
+            <button onclick="eliminarMedicacion(${med.id})" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">🗑️</button>
+          </div>
+          <div class="space-y-1">
+            ${med.medicamentos.map(m => `
+              <div class="flex items-center gap-2 text-sm">
+                <span class="font-semibold text-slate-700">${m.nombre}</span>
+                <span class="text-slate-500">${m.dosis}</span>
+                ${m.cantidad ? `<span class="text-slate-400">(${m.cantidad})</span>` : ''}
+                ${m.observaciones ? `<span class="text-xs text-violet-500 italic">- ${m.observaciones}</span>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function agregarMedicacion() {
+      const hora = document.getElementById('nuevo-med-hora').value;
+      const guardia = document.getElementById('nuevo-med-guardia').value;
+      const nombre = document.getElementById('nuevo-med-nombre').value;
+      const dosis = document.getElementById('nuevo-med-dosis').value;
+      const cantidad = document.getElementById('nuevo-med-cantidad').value;
+      const obs = document.getElementById('nuevo-med-obs').value;
+
+      if (hora && nombre) {
+        medicacion.push({
+          id: Date.now(),
+          hora,
+          guardia,
+          medicamentos: [{ nombre, dosis, cantidad, observaciones: obs }]
+        });
+        document.getElementById('nuevo-med-hora').value = '';
+        document.getElementById('nuevo-med-nombre').value = '';
+        document.getElementById('nuevo-med-dosis').value = '';
+        document.getElementById('nuevo-med-cantidad').value = '';
+        document.getElementById('nuevo-med-obs').value = '';
+        renderizarListaMedicacion();
+      }
+    }
+
+    function eliminarMedicacion(id) {
+      medicacion = medicacion.filter(m => m.id !== id);
+      renderizarListaMedicacion();
+    }
+
+    function renderizarListaTareas() {
+      const lista = document.getElementById('lista-tareas');
+      lista.innerHTML = tareas.map(t => `
+        <div class="bg-white rounded-2xl shadow p-4 border-l-4 ${t.guardia === 'diurna' ? 'border-orange-400' : t.guardia === 'nocturna' ? 'border-green-400' : 'border-violet-400'}">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-bold text-slate-800">${t.nombre}</span>
+                <span class="text-xs px-2 py-0.5 rounded-full font-semibold ${t.guardia === 'diurna' ? 'bg-orange-100 text-orange-700' : t.guardia === 'nocturna' ? 'bg-green-100 text-green-700' : 'bg-violet-100 text-violet-700'}">
+                  ${t.guardia === 'ambas' ? 'AMBAS' : t.guardia.toUpperCase()}
+                </span>
+              </div>
+              <p class="text-sm text-slate-500">${t.horario}</p>
+              <p class="text-xs text-slate-400 mt-1">${t.detalle}</p>
+            </div>
+            <button onclick="eliminarTarea(${t.id})" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">🗑️</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function agregarTarea() {
+      const nombre = document.getElementById('nueva-tarea-nombre').value;
+      const horario = document.getElementById('nueva-tarea-horario').value;
+      const detalle = document.getElementById('nueva-tarea-detalle').value;
+      const guardia = document.getElementById('nueva-tarea-guardia').value;
+      const tipo = document.getElementById('nueva-tarea-tipo').value;
+
+      if (nombre) {
+        tareas.push({ id: Date.now(), nombre, horario, detalle, guardia, tipo });
+        document.getElementById('nueva-tarea-nombre').value = '';
+        document.getElementById('nueva-tarea-horario').value = '';
+        document.getElementById('nueva-tarea-detalle').value = '';
+        renderizarListaTareas();
+      }
+    }
+
+    function eliminarTarea(id) {
+      tareas = tareas.filter(t => t.id !== id);
+      renderizarListaTareas();
+    }
+
+    function renderizarListaControles() {
+      const lista = document.getElementById('lista-controles');
+      lista.innerHTML = controlesRotacion.map(c => `
+        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+          <span class="font-medium text-slate-700">${c.nombre}</span>
+          <button onclick="eliminarControl(${c.id})" class="text-red-400 hover:text-red-600">🗑️</button>
+        </div>
+      `).join('');
+    }
+
+    function agregarControl() {
+      const input = document.getElementById('nuevo-control');
+      if (input.value) {
+        controlesRotacion.push({ id: Date.now(), nombre: input.value });
+        input.value = '';
+        renderizarListaControles();
+      }
+    }
+
+    function eliminarControl(id) {
+      controlesRotacion = controlesRotacion.filter(c => c.id !== id);
+      renderizarListaControles();
+    }
+
+    // ==================== GUARDIA ====================
+    function iniciarGuardia(tipo) {
+      guardiaActual = tipo;
+      medicacionCompletada = {};
+      tareasCompletadas = {};
+      rotacionesRealizadas = [];
+      
+      mostrarPantalla('pantalla-guardia');
+      aplicarEstilosGuardia(tipo);
+      renderizarGuardia();
+    }
+
+    function aplicarEstilosGuardia(tipo) {
+      const esNocturna = tipo === 'nocturna';
+      const pantallaGuardia = document.getElementById('pantalla-guardia');
+      
+      if (esNocturna) {
+        pantallaGuardia.className = 'min-h-screen bg-gradient-to-br from-emerald-900 via-green-800 to-teal-900';
+        document.getElementById('header-guardia').className = 'sticky top-0 z-50 p-4 bg-emerald-900/90 backdrop-blur-xl border-b border-emerald-700/50';
+        document.getElementById('logo-guardia').className = 'p-2 rounded-xl shadow-lg bg-gradient-to-br from-emerald-400 to-teal-500';
+        document.getElementById('titulo-guardia').className = 'text-lg font-black text-white';
+        document.getElementById('subtitulo-guardia').className = 'text-xs font-semibold text-emerald-300';
+        document.getElementById('btn-home-guardia').className = 'px-3 py-2 rounded-xl flex items-center gap-1.5 font-semibold text-sm bg-white/10 text-white hover:bg-white/20';
+        document.getElementById('badge-hora-guardia').className = 'px-3 py-1.5 rounded-xl flex items-center gap-2 bg-emerald-500/30';
+        document.getElementById('icono-guardia').innerHTML = '<svg class="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+        document.getElementById('hora-guardia').className = 'text-sm font-bold text-emerald-200';
+        document.getElementById('info-personal-guardia').className = 'flex items-center gap-4 mt-3 text-xs text-emerald-200';
+        document.getElementById('label-progreso').className = 'text-xs font-semibold text-emerald-300';
+        document.getElementById('valor-progreso').className = 'text-sm font-black text-emerald-400';
+        document.getElementById('barra-progreso-bg').className = 'h-2 rounded-full overflow-hidden bg-white/10';
+        document.getElementById('barra-progreso').className = 'h-full rounded-full transition-all duration-500 bg-gradient-to-r from-emerald-400 to-teal-400';
+        document.getElementById('card-signos-vitales').className = 'rounded-3xl p-4 border bg-white/10 backdrop-blur-xl border-white/20';
+        document.getElementById('icono-sv').className = 'p-2 rounded-xl bg-red-500/30';
+        document.getElementById('titulo-sv').className = 'text-lg font-bold text-white';
+        document.getElementById('subtitulo-sv').className = 'text-xs text-slate-400';
+        document.getElementById('footer-guardia').className = 'fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-emerald-900 via-emerald-900 to-transparent';
+        document.getElementById('btn-generar-informe').className = 'w-full py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 font-bold text-lg transition-all text-white bg-gradient-to-r from-emerald-400 to-teal-400';
+        document.getElementById('seccion-rotaciones-guardia').className = 'rounded-2xl p-4 border bg-white/10 backdrop-blur-xl border-white/20';
+        
+        // Inputs
+        ['sv-pa', 'sv-fc', 'sv-temp', 'sv-spo2', 'sv-fr'].forEach(id => {
+          document.getElementById(id).className = 'w-full px-2 py-2 text-center text-sm rounded-xl border outline-none bg-white/5 border-white/20 text-white placeholder-slate-500';
+        });
+        ['label-pa', 'label-fc', 'label-temp', 'label-spo2', 'label-fr'].forEach(id => {
+          document.getElementById(id).className = 'text-xs font-semibold block text-center mb-1 text-slate-400';
+        });
+      } else {
+        pantallaGuardia.className = 'min-h-screen bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-50';
+        document.getElementById('header-guardia').className = 'sticky top-0 z-50 p-4 bg-white/90 backdrop-blur-xl border-b border-slate-200/50 shadow-sm';
+        document.getElementById('logo-guardia').className = 'p-2 rounded-xl shadow-lg bg-gradient-to-br from-amber-400 to-orange-500';
+        document.getElementById('titulo-guardia').className = 'text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-600';
+        document.getElementById('subtitulo-guardia').className = 'text-xs font-semibold text-slate-500';
+        document.getElementById('btn-home-guardia').className = 'px-3 py-2 rounded-xl flex items-center gap-1.5 font-semibold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200';
+        document.getElementById('badge-hora-guardia').className = 'px-3 py-1.5 rounded-xl flex items-center gap-2 bg-amber-100';
+        document.getElementById('icono-guardia').innerHTML = '<svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
+        document.getElementById('hora-guardia').className = 'text-sm font-bold text-amber-700';
+        document.getElementById('info-personal-guardia').className = 'flex items-center gap-4 mt-3 text-xs text-slate-500';
+        document.getElementById('label-progreso').className = 'text-xs font-semibold text-slate-500';
+        document.getElementById('valor-progreso').className = 'text-sm font-black text-amber-600';
+        document.getElementById('barra-progreso-bg').className = 'h-2 rounded-full overflow-hidden bg-slate-200';
+        document.getElementById('barra-progreso').className = 'h-full rounded-full transition-all duration-500 bg-gradient-to-r from-amber-400 to-orange-500';
+        document.getElementById('card-signos-vitales').className = 'rounded-3xl p-4 border bg-white shadow-xl border-slate-100';
+        document.getElementById('icono-sv').className = 'p-2 rounded-xl bg-gradient-to-br from-red-400 to-rose-500';
+        document.getElementById('titulo-sv').className = 'text-lg font-bold text-slate-800';
+        document.getElementById('subtitulo-sv').className = 'text-xs text-slate-500';
+        document.getElementById('footer-guardia').className = 'fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent';
+        document.getElementById('btn-generar-informe').className = 'w-full py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 font-bold text-lg transition-all text-white bg-gradient-to-r from-amber-400 to-orange-500';
+        document.getElementById('seccion-rotaciones-guardia').className = 'rounded-2xl p-4 border bg-white shadow-lg border-slate-100';
+        
+        // Inputs
+        ['sv-pa', 'sv-fc', 'sv-temp', 'sv-spo2', 'sv-fr'].forEach(id => {
+          document.getElementById(id).className = 'w-full px-2 py-2 text-center text-sm rounded-xl border outline-none border-slate-200 focus:border-amber-400';
+        });
+        ['label-pa', 'label-fc', 'label-temp', 'label-spo2', 'label-fr'].forEach(id => {
+          document.getElementById(id).className = 'text-xs font-semibold block text-center mb-1 text-slate-500';
+        });
+      }
+
+      document.getElementById('info-personal-guardia').innerHTML = `
+        <div class="flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span class="font-semibold">${enfermero}</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <span class="font-semibold">${auxiliar}</span>
+        </div>
+      `;
+    }
+
+    function renderizarGuardia() {
+      renderizarMedicacionGuardia();
+      renderizarTareasGuardia();
+      renderizarRotacionesGuardia();
+      actualizarProgreso();
+    }
+
+    function getMedicacionGuardia() {
+      return medicacion.filter(m => m.guardia === guardiaActual).sort((a, b) => a.hora.localeCompare(b.hora));
+    }
+
+    function getTareasGuardia() {
+      return tareas.filter(t => t.guardia === guardiaActual || t.guardia === 'ambas');
+    }
+
+    function renderizarMedicacionGuardia() {
+      const esNocturna = guardiaActual === 'nocturna';
+      const lista = document.getElementById('seccion-medicacion-guardia');
+      const meds = getMedicacionGuardia();
+      
+      lista.innerHTML = meds.map(med => {
+        const completado = medicacionCompletada[med.id];
+        return `
+          <div class="${esNocturna ? 'bg-white/10 backdrop-blur-xl border-white/20' : 'bg-white shadow-lg border-slate-100'} rounded-2xl p-4 border">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                  <span class="text-2xl font-black ${esNocturna ? 'text-emerald-400' : 'text-amber-500'}">${med.hora}</span>
+                  ${completado ? `<span class="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg font-semibold">✓ ${completado}</span>` : ''}
+                </div>
+                <div class="space-y-1">
+                  ${med.medicamentos.map(m => `
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 rounded-full ${esNocturna ? 'bg-emerald-400' : 'bg-amber-400'}"></div>
+                      <span class="font-semibold ${esNocturna ? 'text-white' : 'text-slate-800'}">${m.nombre}</span>
+                      <span class="${esNocturna ? 'text-slate-400' : 'text-slate-500'}">${m.dosis}</span>
+                      ${m.cantidad ? `<span class="${esNocturna ? 'text-slate-500' : 'text-slate-400'}">(${m.cantidad})</span>` : ''}
+                    </div>
+                  `).join('')}
+                  ${med.medicamentos.some(m => m.observaciones) ? `
+                    <p class="text-xs mt-2 px-2 py-1 rounded-lg ${esNocturna ? 'bg-violet-500/20 text-violet-300' : 'bg-violet-50 text-violet-600'}">
+                      ${med.medicamentos.filter(m => m.observaciones).map(m => m.observaciones).join(' | ')}
+                    </p>
+                  ` : ''}
+                </div>
+              </div>
+              <button onclick="toggleMedicacion(${med.id})" class="check-btn w-12 h-12 rounded-2xl flex items-center justify-center ${
+                completado
+                  ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-lg'
+                  : 'bg-white border-2 border-dashed border-slate-300 text-slate-400 hover:border-slate-400'
+              }">
+                ${completado ? '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderizarTareasGuardia() {
+      const esNocturna = guardiaActual === 'nocturna';
+      const lista = document.getElementById('seccion-tareas-guardia');
+      const tars = getTareasGuardia();
+      
+      lista.innerHTML = tars.map(t => {
+        const completado = tareasCompletadas[t.id];
+        return `
+          <div class="${esNocturna ? 'bg-white/10 backdrop-blur-xl border-white/20' : 'bg-white shadow-lg border-slate-100'} rounded-2xl p-4 border flex items-center justify-between">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-bold ${esNocturna ? 'text-white' : 'text-slate-800'}">${t.nombre}</span>
+                ${completado ? `<span class="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-lg font-semibold">✓ ${completado}</span>` : ''}
+              </div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-xs px-2 py-1 rounded-lg font-semibold ${esNocturna ? 'bg-sky-500/30 text-sky-200' : 'bg-sky-100 text-sky-700'}">${t.horario}</span>
+                ${t.guardia === 'ambas' ? `<span class="text-xs px-2 py-1 rounded-lg font-semibold ${esNocturna ? 'bg-violet-500/30 text-violet-200' : 'bg-violet-100 text-violet-700'}">Ambas guardias</span>` : ''}
+              </div>
+              <p class="text-sm ${esNocturna ? 'text-slate-400' : 'text-slate-500'}">${t.detalle}</p>
+            </div>
+            <button onclick="toggleTarea(${t.id})" class="check-btn w-12 h-12 rounded-2xl flex items-center justify-center ${
+              completado
+                ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-lg'
+                : 'bg-white border-2 border-dashed border-slate-300 text-slate-400 hover:border-slate-400'
+            }">
+              ${completado ? '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderizarRotacionesGuardia() {
+      const esNocturna = guardiaActual === 'nocturna';
+      const container = document.getElementById('seccion-rotaciones-guardia');
+      
+      document.getElementById('titulo-rotaciones').textContent = `Rotaciones (${rotacionesRealizadas.length})`;
+      
+      container.innerHTML = `
+        <p class="text-sm mb-4 ${esNocturna ? 'text-slate-300' : 'text-slate-600'}">
+          Registrar cada rotación realizada. Secuencia: Dorsal → Lateral Der 30° → Dorsal → Lateral Izq 30°
+        </p>
+        <div class="grid grid-cols-2 gap-2 mb-4">
+          ${['Decúbito Dorsal', 'Lateral Derecho 30°', 'Lateral Izquierdo 30°', 'Sentado en Sillón'].map(pos => `
+            <button onclick="agregarRotacion('${pos}')" class="p-3 rounded-xl font-semibold text-sm transition-all ${
+              esNocturna
+                ? 'bg-violet-500/30 text-violet-200 hover:bg-violet-500/50 active:scale-95'
+                : 'bg-violet-100 text-violet-700 hover:bg-violet-200 active:scale-95'
+            }">
+              ${pos}
+            </button>
+          `).join('')}
+        </div>
+        ${rotacionesRealizadas.length > 0 ? `
+          <div class="space-y-2 mb-4">
+            <h4 class="font-semibold text-sm ${esNocturna ? 'text-slate-300' : 'text-slate-600'}">Historial:</h4>
+            ${rotacionesRealizadas.map((r, idx) => `
+              <div class="flex items-center justify-between p-2 rounded-xl ${esNocturna ? 'bg-white/5' : 'bg-slate-50'}">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-violet-500 text-white">${idx + 1}</span>
+                  <span class="font-medium ${esNocturna ? 'text-white' : 'text-slate-800'}">${r.posicion}</span>
+                </div>
+                <span class="${esNocturna ? 'text-slate-400' : 'text-slate-500'}">${r.hora}</span>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+        <div class="p-3 rounded-xl ${esNocturna ? 'bg-amber-500/20' : 'bg-amber-50'}">
+          <p class="text-xs font-semibold mb-2 ${esNocturna ? 'text-amber-300' : 'text-amber-700'}">
+            ⚠️ Verificar en cada rotación:
+          </p>
+          <div class="flex flex-wrap gap-1">
+            ${controlesRotacion.map(c => `
+              <span class="text-xs px-2 py-1 rounded-lg ${esNocturna ? 'bg-white/10 text-slate-300' : 'bg-white text-slate-600'}">${c.nombre}</span>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleMedicacion(id) {
+      if (medicacionCompletada[id]) {
+        delete medicacionCompletada[id];
+      } else {
+        medicacionCompletada[id] = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+      }
+      renderizarMedicacionGuardia();
+      actualizarProgreso();
+    }
+
+    function toggleTarea(id) {
+      if (tareasCompletadas[id]) {
+        delete tareasCompletadas[id];
+      } else {
+        tareasCompletadas[id] = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+      }
+      renderizarTareasGuardia();
+      actualizarProgreso();
+    }
+
+    function agregarRotacion(posicion) {
+      rotacionesRealizadas.push({
+        id: Date.now(),
+        posicion,
+        hora: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+      });
+      renderizarRotacionesGuardia();
+    }
+
+    function toggleSeccion(id) {
+      const seccion = document.getElementById('seccion-' + id);
+      const chevron = document.getElementById('chevron-' + id.replace('-guardia', ''));
+      seccionesExpandidas[id] = !seccionesExpandidas[id];
+      
+      if (seccionesExpandidas[id]) {
+        seccion.classList.remove('hidden');
+        chevron.innerHTML = '<path d="m18 15-6-6-6 6"/>';
+      } else {
+        seccion.classList.add('hidden');
+        chevron.innerHTML = '<path d="m6 9 6 6 6-6"/>';
+      }
+    }
+
+    function actualizarProgreso() {
+      const meds = getMedicacionGuardia();
+      const tars = getTareasGuardia();
+      const totalMed = meds.length;
+      const totalTar = tars.length;
+      const completadasMed = Object.keys(medicacionCompletada).filter(k => meds.some(m => m.id == k)).length;
+      const completadasTar = Object.keys(tareasCompletadas).filter(k => tars.some(t => t.id == k)).length;
+      const total = totalMed + totalTar;
+      const completadas = completadasMed + completadasTar;
+      const progreso = total > 0 ? Math.round((completadas / total) * 100) : 0;
+      
+      document.getElementById('valor-progreso').textContent = progreso + '%';
+      document.getElementById('barra-progreso').style.width = progreso + '%';
+    }
+
+    // ==================== INFORME ====================
+    function mostrarInforme() {
+      mostrarPantalla('pantalla-informe');
+      aplicarEstilosInforme();
+      renderizarInforme();
+    }
+
+    function volverGuardia() {
+      mostrarPantalla('pantalla-guardia');
+    }
+
+    function aplicarEstilosInforme() {
+      const esNocturna = guardiaActual === 'nocturna';
+      const pantalla = document.getElementById('pantalla-informe');
+      
+      if (esNocturna) {
+        pantalla.className = 'min-h-screen p-4 bg-gradient-to-br from-emerald-900 via-green-800 to-teal-900';
+        document.getElementById('card-informe-header').className = 'rounded-3xl p-6 mb-4 border bg-white/10 backdrop-blur-xl border-white/20';
+        document.getElementById('icono-informe').className = 'p-3 rounded-2xl bg-emerald-500';
+        document.getElementById('titulo-informe').className = 'text-2xl font-black text-white';
+        document.getElementById('fecha-informe').className = 'text-emerald-300';
+        document.getElementById('btn-volver-informe').className = 'px-4 py-2 rounded-xl font-semibold transition-all bg-white/20 text-white hover:bg-white/30';
+        document.getElementById('card-paciente').className = 'p-4 rounded-2xl bg-white/10';
+        document.getElementById('label-paciente').className = 'text-xs font-semibold uppercase tracking-wider text-emerald-300';
+        document.getElementById('valor-paciente').className = 'text-lg font-bold text-white';
+        document.getElementById('card-guardia-info').className = 'p-4 rounded-2xl bg-emerald-500/30';
+        document.getElementById('label-guardia-info').className = 'text-xs font-semibold uppercase tracking-wider text-emerald-200';
+        document.getElementById('valor-guardia-info').className = 'text-lg font-bold text-white';
+        document.getElementById('card-enfermero').className = 'p-4 rounded-2xl bg-white/5';
+        document.getElementById('label-enfermero').className = 'text-xs font-semibold uppercase tracking-wider text-slate-400';
+        document.getElementById('valor-enfermero').className = 'font-bold text-white';
+        document.getElementById('card-auxiliar').className = 'p-4 rounded-2xl bg-white/5';
+        document.getElementById('label-auxiliar').className = 'text-xs font-semibold uppercase tracking-wider text-slate-400';
+        document.getElementById('valor-auxiliar').className = 'font-bold text-white';
+        document.getElementById('label-progreso-informe').className = 'font-semibold text-slate-300';
+        document.getElementById('valor-progreso-informe').className = 'text-2xl font-black text-emerald-400';
+        document.getElementById('barra-progreso-informe-bg').className = 'h-4 rounded-full overflow-hidden bg-white/10';
+        document.getElementById('barra-progreso-informe').className = 'h-full rounded-full transition-all duration-500 bg-gradient-to-r from-emerald-400 to-teal-400';
+        document.getElementById('card-resumen-medicacion').className = 'rounded-2xl p-4 mb-3 border bg-white/10 backdrop-blur-xl border-white/20';
+        document.getElementById('icono-med-informe').className = 'w-5 h-5 text-rose-400';
+        document.getElementById('titulo-med-informe').className = 'font-bold text-white';
+        document.getElementById('card-resumen-tareas').className = 'rounded-2xl p-4 mb-3 border bg-white/10 backdrop-blur-xl border-white/20';
+        document.getElementById('icono-tar-informe').className = 'w-5 h-5 text-sky-400';
+        document.getElementById('titulo-tar-informe').className = 'font-bold text-white';
+        document.getElementById('card-resumen-rotaciones').className = 'rounded-2xl p-4 mb-3 border bg-white/10 backdrop-blur-xl border-white/20';
+        document.getElementById('icono-rot-informe').className = 'w-5 h-5 text-violet-400';
+        document.getElementById('titulo-rot-informe').className = 'font-bold text-white';
+        document.getElementById('card-resumen-sv').className = 'rounded-2xl p-4 mb-3 border bg-white/10 backdrop-blur-xl border-white/20';
+        document.getElementById('icono-sv-informe').className = 'w-5 h-5 text-red-400';
+        document.getElementById('titulo-sv-informe').className = 'font-bold text-white';
+        document.getElementById('card-observaciones').className = 'rounded-2xl p-4 mb-4 border bg-white/10 backdrop-blur-xl border-white/20';
+        document.getElementById('titulo-obs').className = 'font-bold text-white mb-2';
+        document.getElementById('input-observaciones').className = 'w-full p-3 rounded-xl border-2 outline-none min-h-24 bg-white/5 border-white/20 text-white placeholder-slate-400';
+        document.getElementById('btn-enviar-informe').className = 'w-full py-4 rounded-2xl text-lg font-bold tracking-wide transition-all duration-300 flex items-center justify-center gap-3 text-white bg-gradient-to-r from-emerald-400 to-teal-400 shadow-lg';
+      } else {
+        pantalla.className = 'min-h-screen p-4 bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-50';
+        document.getElementById('card-informe-header').className = 'rounded-3xl p-6 mb-4 border bg-white shadow-xl border-slate-100';
+        document.getElementById('icono-informe').className = 'p-3 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500';
+        document.getElementById('titulo-informe').className = 'text-2xl font-black text-slate-800';
+        document.getElementById('fecha-informe').className = 'text-slate-500';
+        document.getElementById('btn-volver-informe').className = 'px-4 py-2 rounded-xl font-semibold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200';
+        document.getElementById('card-paciente').className = 'p-4 rounded-2xl bg-gradient-to-r from-teal-50 to-cyan-50';
+        document.getElementById('label-paciente').className = 'text-xs font-semibold uppercase tracking-wider text-teal-600';
+        document.getElementById('valor-paciente').className = 'text-lg font-bold text-slate-800';
+        document.getElementById('card-guardia-info').className = 'p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50';
+        document.getElementById('label-guardia-info').className = 'text-xs font-semibold uppercase tracking-wider text-amber-600';
+        document.getElementById('valor-guardia-info').className = 'text-lg font-bold text-slate-800';
+        document.getElementById('card-enfermero').className = 'p-4 rounded-2xl bg-slate-50';
+        document.getElementById('label-enfermero').className = 'text-xs font-semibold uppercase tracking-wider text-slate-500';
+        document.getElementById('valor-enfermero').className = 'font-bold text-slate-800';
+        document.getElementById('card-auxiliar').className = 'p-4 rounded-2xl bg-slate-50';
+        document.getElementById('label-auxiliar').className = 'text-xs font-semibold uppercase tracking-wider text-slate-500';
+        document.getElementById('valor-auxiliar').className = 'font-bold text-slate-800';
+        document.getElementById('label-progreso-informe').className = 'font-semibold text-slate-600';
+        document.getElementById('valor-progreso-informe').className = 'text-2xl font-black text-teal-600';
+        document.getElementById('barra-progreso-informe-bg').className = 'h-4 rounded-full overflow-hidden bg-slate-100';
+        document.getElementById('barra-progreso-informe').className = 'h-full rounded-full transition-all duration-500 bg-gradient-to-r from-amber-400 to-orange-500';
+        document.getElementById('card-resumen-medicacion').className = 'rounded-2xl p-4 mb-3 border bg-white shadow-lg border-slate-100';
+        document.getElementById('icono-med-informe').className = 'w-5 h-5 text-rose-500';
+        document.getElementById('titulo-med-informe').className = 'font-bold text-slate-800';
+        document.getElementById('card-resumen-tareas').className = 'rounded-2xl p-4 mb-3 border bg-white shadow-lg border-slate-100';
+        document.getElementById('icono-tar-informe').className = 'w-5 h-5 text-sky-500';
+        document.getElementById('titulo-tar-informe').className = 'font-bold text-slate-800';
+        document.getElementById('card-resumen-rotaciones').className = 'rounded-2xl p-4 mb-3 border bg-white shadow-lg border-slate-100';
+        document.getElementById('icono-rot-informe').className = 'w-5 h-5 text-violet-500';
+        document.getElementById('titulo-rot-informe').className = 'font-bold text-slate-800';
+        document.getElementById('card-resumen-sv').className = 'rounded-2xl p-4 mb-3 border bg-white shadow-lg border-slate-100';
+        document.getElementById('icono-sv-informe').className = 'w-5 h-5 text-red-500';
+        document.getElementById('titulo-sv-informe').className = 'font-bold text-slate-800';
+        document.getElementById('card-observaciones').className = 'rounded-2xl p-4 mb-4 border bg-white shadow-lg border-slate-100';
+        document.getElementById('titulo-obs').className = 'font-bold text-slate-800 mb-2';
+        document.getElementById('input-observaciones').className = 'w-full p-3 rounded-xl border-2 outline-none min-h-24 border-slate-200 focus:border-teal-400';
+        document.getElementById('btn-enviar-informe').className = 'w-full py-4 rounded-2xl text-lg font-bold tracking-wide transition-all duration-300 flex items-center justify-center gap-3 text-white bg-gradient-to-r from-amber-400 to-orange-500 shadow-lg';
+      }
+    }
+
+    function renderizarInforme() {
+      const esNocturna = guardiaActual === 'nocturna';
+      const meds = getMedicacionGuardia();
+      const tars = getTareasGuardia();
+      
+      // Fecha
+      const now = new Date();
+      document.getElementById('fecha-informe').textContent = now.toLocaleDateString('es-AR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      
+      // Info
+      document.getElementById('valor-guardia-info').textContent = guardiaActual === 'diurna' ? 'Diurna (08:00 - 20:00)' : 'Nocturna (20:00 - 08:00)';
+      document.getElementById('valor-enfermero').textContent = enfermero;
+      document.getElementById('valor-auxiliar').textContent = auxiliar;
+      
+      // Progreso
+      const totalMed = meds.length;
+      const totalTar = tars.length;
+      const completadasMed = Object.keys(medicacionCompletada).filter(k => meds.some(m => m.id == k)).length;
+      const completadasTar = Object.keys(tareasCompletadas).filter(k => tars.some(t => t.id == k)).length;
+      const total = totalMed + totalTar;
+      const completadas = completadasMed + completadasTar;
+      const progreso = total > 0 ? Math.round((completadas / total) * 100) : 0;
+      
+      document.getElementById('valor-progreso-informe').textContent = progreso + '%';
+      document.getElementById('barra-progreso-informe').style.width = progreso + '%';
+      
+      // Medicación
+      document.getElementById('lista-med-informe').innerHTML = meds.map(med => {
+        const completado = medicacionCompletada[med.id];
+        return `
+          <div class="p-3 rounded-xl ${completado ? (esNocturna ? 'bg-emerald-500/20' : 'bg-emerald-50') : (esNocturna ? 'bg-red-500/20' : 'bg-red-50')}">
+            <div class="flex justify-between items-center">
+              <span class="font-bold ${esNocturna ? 'text-white' : 'text-slate-800'}">${med.hora}</span>
+              <span class="text-sm font-semibold ${completado ? 'text-emerald-500' : 'text-red-500'}">
+                ${completado ? `✓ ${completado}` : '✗ No administrado'}
+              </span>
+            </div>
+            <div class="text-sm ${esNocturna ? 'text-slate-300' : 'text-slate-600'}">
+              ${med.medicamentos.map(m => m.nombre).join(', ')}
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      // Tareas
+      document.getElementById('lista-tar-informe').innerHTML = tars.map(t => {
+        const completado = tareasCompletadas[t.id];
+        return `
+          <div class="p-2 rounded-xl ${completado ? (esNocturna ? 'bg-emerald-500/20' : 'bg-emerald-50') : (esNocturna ? 'bg-red-500/20' : 'bg-red-50')}">
+            <p class="font-medium text-sm ${esNocturna ? 'text-white' : 'text-slate-800'}">${t.nombre}</p>
+            <p class="text-xs ${completado ? 'text-emerald-500' : 'text-red-500'}">
+              ${completado ? `✓ ${completado}` : 'No realizado'}
+            </p>
+          </div>
+        `;
+      }).join('');
+      
+      // Rotaciones
+      document.getElementById('titulo-rot-informe').textContent = `Rotaciones Realizadas: ${rotacionesRealizadas.length}`;
+      document.getElementById('lista-rot-informe').innerHTML = rotacionesRealizadas.length > 0 
+        ? rotacionesRealizadas.map(r => `
+            <div class="flex items-center justify-between p-2 rounded-xl ${esNocturna ? 'bg-white/5' : 'bg-slate-50'}">
+              <span class="font-medium ${esNocturna ? 'text-white' : 'text-slate-800'}">${r.posicion}</span>
+              <span class="${esNocturna ? 'text-slate-400' : 'text-slate-500'}">${r.hora}</span>
+            </div>
+          `).join('')
+        : `<p class="${esNocturna ? 'text-slate-400' : 'text-slate-500'}">No se registraron rotaciones</p>`;
+      
+      // Signos Vitales
+      const sv = {
+        pa: document.getElementById('sv-pa').value,
+        fc: document.getElementById('sv-fc').value,
+        temp: document.getElementById('sv-temp').value,
+        spo2: document.getElementById('sv-spo2').value,
+        fr: document.getElementById('sv-fr').value
+      };
+      
+      document.getElementById('lista-sv-informe').innerHTML = [
+        { label: 'PA', value: sv.pa },
+        { label: 'FC', value: sv.fc },
+        { label: 'T°', value: sv.temp },
+        { label: 'SpO2', value: sv.spo2 },
+        { label: 'FR', value: sv.fr }
+      ].map(s => `
+        <div class="p-2 rounded-xl text-center ${esNocturna ? 'bg-white/5' : 'bg-slate-50'}">
+          <p class="text-xs font-semibold ${esNocturna ? 'text-slate-400' : 'text-slate-500'}">${s.label}</p>
+          <p class="font-bold ${esNocturna ? 'text-white' : 'text-slate-800'}">${s.value || '-'}</p>
+        </div>
+      `).join('');
+    }
+
+    function enviarInforme() {
+      const btn = document.getElementById('btn-enviar-informe');
+      const textoBtn = document.getElementById('texto-btn-enviar');
+      
+      // Simular envío
+      btn.classList.remove('bg-gradient-to-r', 'from-amber-400', 'to-orange-500', 'from-emerald-400', 'to-teal-400');
+      btn.classList.add('bg-emerald-500');
+      textoBtn.textContent = '✓ ¡Informe Enviado!';
+      
+      // Log del informe
+      console.log('Informe enviado:', {
+        fecha: new Date().toLocaleString('es-AR'),
+        guardia: guardiaActual,
+        enfermero,
+        auxiliar,
+        medicacionCompletada,
+        tareasCompletadas,
+        rotacionesRealizadas,
+        signosVitales: {
+          pa: document.getElementById('sv-pa').value,
+          fc: document.getElementById('sv-fc').value,
+          temp: document.getElementById('sv-temp').value,
+          spo2: document.getElementById('sv-spo2').value,
+          fr: document.getElementById('sv-fr').value
+        },
+        observaciones: document.getElementById('input-observaciones').value
+      });
+      
+      setTimeout(() => {
+        const esNocturna = guardiaActual === 'nocturna';
+        btn.classList.remove('bg-emerald-500');
+        btn.classList.add('bg-gradient-to-r');
+        if (esNocturna) {
+          btn.classList.add('from-emerald-400', 'to-teal-400');
+        } else {
+          btn.classList.add('from-amber-400', 'to-orange-500');
+        }
+        textoBtn.textContent = 'Enviar Informe al Administrador';
+      }, 3000);
+    }
+
+    // ==================== INICIALIZACIÓN ====================
+    document.getElementById('input-enfermero').addEventListener('input', validarFormulario);
+    document.getElementById('input-auxiliar').addEventListener('input', validarFormulario);
+    
+    actualizarHora();
+    setInterval(actualizarHora, 1000);
+
+    // ==================== PWA INSTALLATION ====================
+    let deferredPrompt;
+    const installBanner = document.getElementById('install-banner');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      // Mostrar banner después de 3 segundos si no está instalada
+      setTimeout(() => {
+        if (deferredPrompt && !window.matchMedia('(display-mode: standalone)').matches) {
+          installBanner.classList.add('show');
+        }
+      }, 3000);
+    });
+
+    function installPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('PWA instalada');
+          }
+          deferredPrompt = null;
+          installBanner.classList.remove('show');
+        });
+      }
+    }
+
+    function closeInstallBanner() {
+      installBanner.classList.remove('show');
+      // No mostrar de nuevo en esta sesión
+      sessionStorage.setItem('installBannerClosed', 'true');
+    }
+
+    // No mostrar si ya se cerró en esta sesión
+    if (sessionStorage.getItem('installBannerClosed')) {
+      installBanner.style.display = 'none';
+    }
+
+    // Detectar si ya está instalada
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      installBanner.style.display = 'none';
+    }
+
+    // Registrar Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {
+        // Service worker no disponible, la app funciona igual
+      });
+    }
+  </script>
+</body>
+</html>
