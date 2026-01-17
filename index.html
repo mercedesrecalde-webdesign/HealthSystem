@@ -370,6 +370,12 @@
           </svg>
           Rotación
         </button>
+        <button onclick="cambiarTabAdmin('reportes')" id="tab-reportes" class="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-slate-500 hover:text-slate-700">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+          </svg>
+          Reportes
+        </button>
       </div>
     </div>
 
@@ -462,6 +468,25 @@
             <p class="text-sm text-amber-800">
               ⚠️ <strong>Nota:</strong> Durante la noche, espaciar rotaciones si el paciente está durmiendo.
             </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Reportes -->
+      <div id="content-reportes" class="hidden">
+        <div class="bg-white rounded-2xl shadow-lg p-4 mb-4">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-lg text-slate-800">📊 Reportes de Guardia</h3>
+            <button onclick="exportarReportesCSV()" class="px-4 py-2 bg-emerald-500 text-white rounded-xl font-semibold text-sm hover:bg-emerald-600 transition-all">
+              📥 Exportar CSV
+            </button>
+          </div>
+          <p class="text-sm text-slate-500 mb-4">Historial de todos los informes enviados por los enfermeros</p>
+          <div id="lista-reportes" class="space-y-4"></div>
+          <div id="sin-reportes" class="hidden text-center py-12">
+            <div class="text-6xl mb-4">📋</div>
+            <p class="text-slate-500 font-medium">No hay reportes todavía</p>
+            <p class="text-slate-400 text-sm">Los reportes aparecerán aquí cuando los enfermeros envíen sus informes de guardia</p>
           </div>
         </div>
       </div>
@@ -1143,12 +1168,17 @@
     }
 
     function cambiarTabAdmin(tab) {
-      ['medicacion', 'tareas', 'rotacion'].forEach(t => {
+      ['medicacion', 'tareas', 'rotacion', 'reportes'].forEach(t => {
         document.getElementById('tab-' + t).className = 'flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-slate-500 hover:text-slate-700';
         document.getElementById('content-' + t).classList.add('hidden');
       });
       document.getElementById('tab-' + tab).className = 'flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-violet-600 border-b-2 border-violet-600 bg-violet-50';
       document.getElementById('content-' + tab).classList.remove('hidden');
+      
+      // Si es la pestaña de reportes, renderizar
+      if (tab === 'reportes') {
+        renderizarReportesAdmin();
+      }
     }
 
     function renderizarListaMedicacion() {
@@ -1271,6 +1301,202 @@
     function eliminarControl(id) {
       controlesRotacion = controlesRotacion.filter(c => c.id !== id);
       renderizarListaControles();
+    }
+
+    function renderizarReportesAdmin() {
+      const reportes = obtenerReportes();
+      const lista = document.getElementById('lista-reportes');
+      const sinReportes = document.getElementById('sin-reportes');
+      
+      if (reportes.length === 0) {
+        lista.innerHTML = '';
+        sinReportes.classList.remove('hidden');
+        return;
+      }
+      
+      sinReportes.classList.add('hidden');
+      
+      lista.innerHTML = reportes.map(r => {
+        const esNocturna = r.guardia === 'nocturna';
+        const progreso = r.progreso ? r.progreso.porcentaje : 0;
+        
+        return `
+          <div class="bg-gradient-to-r ${esNocturna ? 'from-emerald-50 to-teal-50 border-emerald-200' : 'from-amber-50 to-orange-50 border-amber-200'} rounded-2xl p-4 border">
+            <div class="flex items-start justify-between mb-3">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-2xl">${esNocturna ? '🌙' : '☀️'}</span>
+                  <span class="font-bold text-lg text-slate-800">${r.guardiaTexto || r.guardia}</span>
+                  <span class="px-2 py-1 rounded-lg text-xs font-bold ${progreso >= 80 ? 'bg-emerald-100 text-emerald-700' : progreso >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}">
+                    ${progreso}% completado
+                  </span>
+                </div>
+                <p class="text-sm text-slate-600">${r.fecha}</p>
+              </div>
+              <button onclick="eliminarReporte(${r.id})" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all" title="Eliminar reporte">
+                🗑️
+              </button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3 mb-3">
+              <div class="bg-white/70 rounded-xl p-3">
+                <p class="text-xs text-slate-500 font-semibold">Enfermero/a</p>
+                <p class="font-bold text-slate-800">${r.enfermero}</p>
+              </div>
+              <div class="bg-white/70 rounded-xl p-3">
+                <p class="text-xs text-slate-500 font-semibold">Auxiliar</p>
+                <p class="font-bold text-slate-800">${r.auxiliar}</p>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-2 mb-3">
+              <div class="bg-white/70 rounded-xl p-2 text-center">
+                <p class="text-xs text-slate-500">Medicación</p>
+                <p class="font-bold ${r.progreso && r.progreso.medicacion.completadas === r.progreso.medicacion.total ? 'text-emerald-600' : 'text-slate-700'}">
+                  ${r.progreso ? r.progreso.medicacion.completadas : '?'}/${r.progreso ? r.progreso.medicacion.total : '?'}
+                </p>
+              </div>
+              <div class="bg-white/70 rounded-xl p-2 text-center">
+                <p class="text-xs text-slate-500">Tareas</p>
+                <p class="font-bold ${r.progreso && r.progreso.tareas.completadas === r.progreso.tareas.total ? 'text-emerald-600' : 'text-slate-700'}">
+                  ${r.progreso ? r.progreso.tareas.completadas : '?'}/${r.progreso ? r.progreso.tareas.total : '?'}
+                </p>
+              </div>
+              <div class="bg-white/70 rounded-xl p-2 text-center">
+                <p class="text-xs text-slate-500">Rotaciones</p>
+                <p class="font-bold text-slate-700">${r.progreso ? r.progreso.rotaciones : (r.rotacionesRealizadas ? r.rotacionesRealizadas.length : 0)}</p>
+              </div>
+            </div>
+            
+            ${r.signosVitales ? `
+            <div class="bg-white/70 rounded-xl p-3 mb-3">
+              <p class="text-xs text-slate-500 font-semibold mb-2">Signos Vitales</p>
+              <div class="flex flex-wrap gap-2">
+                ${r.signosVitales.pa ? `<span class="px-2 py-1 bg-slate-100 rounded text-xs"><b>PA:</b> ${r.signosVitales.pa}</span>` : ''}
+                ${r.signosVitales.fc ? `<span class="px-2 py-1 bg-slate-100 rounded text-xs"><b>FC:</b> ${r.signosVitales.fc}</span>` : ''}
+                ${r.signosVitales.temp ? `<span class="px-2 py-1 bg-slate-100 rounded text-xs"><b>T°:</b> ${r.signosVitales.temp}</span>` : ''}
+                ${r.signosVitales.spo2 ? `<span class="px-2 py-1 bg-slate-100 rounded text-xs"><b>SpO2:</b> ${r.signosVitales.spo2}</span>` : ''}
+                ${r.signosVitales.fr ? `<span class="px-2 py-1 bg-slate-100 rounded text-xs"><b>FR:</b> ${r.signosVitales.fr}</span>` : ''}
+                ${r.signosVitales.gluc ? `<span class="px-2 py-1 bg-rose-100 rounded text-xs"><b>Gluc:</b> ${r.signosVitales.gluc}</span>` : ''}
+              </div>
+            </div>
+            ` : ''}
+            
+            ${r.observaciones ? `
+            <div class="bg-white/70 rounded-xl p-3 mb-3">
+              <p class="text-xs text-slate-500 font-semibold mb-1">Observaciones</p>
+              <p class="text-sm text-slate-700">${r.observaciones}</p>
+            </div>
+            ` : ''}
+            
+            <button onclick="verDetalleReporte(${r.id})" class="w-full py-2 bg-white/80 hover:bg-white rounded-xl text-sm font-semibold text-slate-600 transition-all">
+              📋 Ver detalle completo
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function verDetalleReporte(id) {
+      const reportes = obtenerReportes();
+      const r = reportes.find(rep => rep.id === id);
+      if (!r) return;
+      
+      let detalle = `REPORTE DE GUARDIA\n`;
+      detalle += `═══════════════════════════════\n\n`;
+      detalle += `📅 Fecha: ${r.fecha}\n`;
+      detalle += `🏥 Guardia: ${r.guardiaTexto || r.guardia}\n`;
+      detalle += `👨‍⚕️ Enfermero/a: ${r.enfermero}\n`;
+      detalle += `👩‍⚕️ Auxiliar: ${r.auxiliar}\n`;
+      detalle += `📊 Progreso: ${r.progreso ? r.progreso.porcentaje : 0}%\n\n`;
+      
+      detalle += `SIGNOS VITALES\n`;
+      detalle += `───────────────────────────────\n`;
+      if (r.signosVitales) {
+        detalle += `PA: ${r.signosVitales.pa || '-'} | FC: ${r.signosVitales.fc || '-'} | T°: ${r.signosVitales.temp || '-'}\n`;
+        detalle += `SpO2: ${r.signosVitales.spo2 || '-'} | FR: ${r.signosVitales.fr || '-'} | Gluc: ${r.signosVitales.gluc || '-'}\n\n`;
+      }
+      
+      detalle += `MEDICACIÓN\n`;
+      detalle += `───────────────────────────────\n`;
+      if (r.medicacionDetalle) {
+        r.medicacionDetalle.forEach(m => {
+          detalle += `${m.completado ? '✅' : '❌'} ${m.hora} - ${m.medicamentos}`;
+          if (m.horaCompletado) detalle += ` (a las ${m.horaCompletado})`;
+          detalle += `\n`;
+        });
+      }
+      detalle += `\n`;
+      
+      detalle += `TAREAS\n`;
+      detalle += `───────────────────────────────\n`;
+      if (r.tareasDetalle) {
+        r.tareasDetalle.forEach(t => {
+          detalle += `${t.completado ? '✅' : '❌'} ${t.nombre}`;
+          if (t.horaCompletado) detalle += ` (a las ${t.horaCompletado})`;
+          detalle += `\n`;
+        });
+      }
+      detalle += `\n`;
+      
+      detalle += `ROTACIONES: ${r.rotacionesRealizadas ? r.rotacionesRealizadas.length : 0}\n`;
+      detalle += `───────────────────────────────\n`;
+      if (r.rotacionesRealizadas && r.rotacionesRealizadas.length > 0) {
+        r.rotacionesRealizadas.forEach((rot, i) => {
+          detalle += `${i + 1}. ${rot.hora} - ${rot.posicion}\n`;
+        });
+      }
+      detalle += `\n`;
+      
+      if (r.observaciones) {
+        detalle += `OBSERVACIONES\n`;
+        detalle += `───────────────────────────────\n`;
+        detalle += `${r.observaciones}\n`;
+      }
+      
+      alert(detalle);
+    }
+
+    function exportarReportesCSV() {
+      const reportes = obtenerReportes();
+      if (reportes.length === 0) {
+        alert('No hay reportes para exportar');
+        return;
+      }
+      
+      // Crear CSV
+      let csv = 'Fecha,Guardia,Enfermero,Auxiliar,Progreso,Med Completadas,Med Total,Tareas Completadas,Tareas Total,Rotaciones,PA,FC,Temp,SpO2,FR,Glucemia,Observaciones\n';
+      
+      reportes.forEach(r => {
+        const prog = r.progreso || {};
+        const sv = r.signosVitales || {};
+        const obs = (r.observaciones || '').replace(/"/g, '""').replace(/\n/g, ' ');
+        
+        csv += `"${r.fecha}",`;
+        csv += `"${r.guardiaTexto || r.guardia}",`;
+        csv += `"${r.enfermero}",`;
+        csv += `"${r.auxiliar}",`;
+        csv += `${prog.porcentaje || 0}%,`;
+        csv += `${prog.medicacion ? prog.medicacion.completadas : 0},`;
+        csv += `${prog.medicacion ? prog.medicacion.total : 0},`;
+        csv += `${prog.tareas ? prog.tareas.completadas : 0},`;
+        csv += `${prog.tareas ? prog.tareas.total : 0},`;
+        csv += `${prog.rotaciones || 0},`;
+        csv += `"${sv.pa || ''}",`;
+        csv += `"${sv.fc || ''}",`;
+        csv += `"${sv.temp || ''}",`;
+        csv += `"${sv.spo2 || ''}",`;
+        csv += `"${sv.fr || ''}",`;
+        csv += `"${sv.gluc || ''}",`;
+        csv += `"${obs}"\n`;
+      });
+      
+      // Descargar
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `reportes_recalde_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
     }
 
     // ==================== GUARDIA ====================
@@ -1792,24 +2018,79 @@
       `).join('');
     }
 
+    function guardarReporte(informe) {
+      // Obtener reportes existentes
+      let reportes = [];
+      try {
+        const guardados = localStorage.getItem('recaldeHealthReportes');
+        if (guardados) {
+          reportes = JSON.parse(guardados);
+        }
+      } catch (e) {
+        reportes = [];
+      }
+      
+      // Agregar nuevo reporte con ID único
+      informe.id = Date.now();
+      informe.fechaEnvio = new Date().toISOString();
+      reportes.unshift(informe); // Agregar al principio
+      
+      // Mantener solo los últimos 100 reportes
+      if (reportes.length > 100) {
+        reportes = reportes.slice(0, 100);
+      }
+      
+      // Guardar
+      localStorage.setItem('recaldeHealthReportes', JSON.stringify(reportes));
+      return true;
+    }
+
+    function obtenerReportes() {
+      try {
+        const guardados = localStorage.getItem('recaldeHealthReportes');
+        if (guardados) {
+          return JSON.parse(guardados);
+        }
+      } catch (e) {}
+      return [];
+    }
+
+    function eliminarReporte(id) {
+      let reportes = obtenerReportes();
+      reportes = reportes.filter(r => r.id !== id);
+      localStorage.setItem('recaldeHealthReportes', JSON.stringify(reportes));
+      renderizarReportesAdmin();
+    }
+
     function enviarInforme() {
       const btn = document.getElementById('btn-enviar-informe');
       const textoBtn = document.getElementById('texto-btn-enviar');
       
-      // Simular envío
-      btn.classList.remove('bg-gradient-to-r', 'from-amber-400', 'to-orange-500', 'from-emerald-400', 'to-teal-400');
-      btn.classList.add('bg-emerald-500');
-      textoBtn.textContent = '✓ ¡Informe Enviado!';
-      
-      // Log del informe
+      // Crear objeto de informe
       const informe = {
         fecha: new Date().toLocaleString('es-AR'),
         guardia: guardiaActual,
+        guardiaTexto: guardiaActual === 'diurna' ? 'Diurna (08:00 - 20:00)' : 'Nocturna (20:00 - 08:00)',
         enfermero,
         auxiliar,
-        medicacionCompletada,
-        tareasCompletadas,
-        rotacionesRealizadas,
+        paciente: 'Patricio Recalde',
+        medicacionCompletada: { ...medicacionCompletada },
+        tareasCompletadas: { ...tareasCompletadas },
+        rotacionesRealizadas: [...rotacionesRealizadas],
+        totalMedicacion: getMedicacionGuardia().length,
+        totalTareas: getTareasGuardia().length,
+        medicacionDetalle: getMedicacionGuardia().map(m => ({
+          hora: m.hora,
+          medicamentos: m.medicamentos.map(med => med.nombre).join(', '),
+          completado: !!medicacionCompletada[m.id],
+          horaCompletado: medicacionCompletada[m.id] || null
+        })),
+        tareasDetalle: getTareasGuardia().map(t => ({
+          nombre: t.nombre,
+          horario: t.horario,
+          completado: !!tareasCompletadas[t.id],
+          horaCompletado: tareasCompletadas[t.id] || null
+        })),
         signosVitales: {
           pa: document.getElementById('sv-pa').value,
           fc: document.getElementById('sv-fc').value,
@@ -1818,30 +2099,58 @@
           fr: document.getElementById('sv-fr').value,
           gluc: document.getElementById('sv-gluc').value
         },
-        observaciones: document.getElementById('input-observaciones').value
+        observaciones: document.getElementById('input-observaciones').value,
+        progreso: calcularProgresoDetallado()
       };
-      console.log('Informe enviado:', informe);
       
-      // Limpiar guardia después de enviar
-      limpiarGuardia();
+      // Guardar reporte
+      const guardado = guardarReporte(informe);
       
-      setTimeout(() => {
-        const esNocturna = guardiaActual === 'nocturna';
-        btn.classList.remove('bg-emerald-500');
-        btn.classList.add('bg-gradient-to-r');
-        if (esNocturna) {
-          btn.classList.add('from-emerald-400', 'to-teal-400');
-        } else {
-          btn.classList.add('from-amber-400', 'to-orange-500');
-        }
-        textoBtn.textContent = 'Enviar Informe al Administrador';
+      if (guardado) {
+        // Mostrar éxito
+        btn.classList.remove('bg-gradient-to-r', 'from-amber-400', 'to-orange-500', 'from-emerald-400', 'to-teal-400');
+        btn.classList.add('bg-emerald-500');
+        textoBtn.textContent = '✓ ¡Informe Guardado y Enviado!';
         
-        // Preguntar si quiere volver al inicio
-        if (confirm('¡Informe enviado!\n\n¿Querés volver a la pantalla de inicio?')) {
-          if (checkAlarmsInterval) clearInterval(checkAlarmsInterval);
-          volverInicio();
-        }
-      }, 2000);
+        console.log('Informe guardado:', informe);
+        
+        // Limpiar guardia después de enviar
+        limpiarGuardia();
+        
+        setTimeout(() => {
+          const esNocturna = guardiaActual === 'nocturna';
+          btn.classList.remove('bg-emerald-500');
+          btn.classList.add('bg-gradient-to-r');
+          if (esNocturna) {
+            btn.classList.add('from-emerald-400', 'to-teal-400');
+          } else {
+            btn.classList.add('from-amber-400', 'to-orange-500');
+          }
+          textoBtn.textContent = 'Enviar Informe al Administrador';
+          
+          // Preguntar si quiere volver al inicio
+          if (confirm('¡Informe enviado!\n\nEl reporte está disponible en el Panel de Administración.\n\n¿Querés volver a la pantalla de inicio?')) {
+            if (checkAlarmsInterval) clearInterval(checkAlarmsInterval);
+            volverInicio();
+          }
+        }, 2000);
+      } else {
+        alert('Error al guardar el informe. Intentá de nuevo.');
+      }
+    }
+
+    function calcularProgresoDetallado() {
+      const meds = getMedicacionGuardia();
+      const tars = getTareasGuardia();
+      const completadasMed = Object.keys(medicacionCompletada).filter(k => meds.some(m => m.id == k)).length;
+      const completadasTar = Object.keys(tareasCompletadas).filter(k => tars.some(t => t.id == k)).length;
+      
+      return {
+        medicacion: { completadas: completadasMed, total: meds.length },
+        tareas: { completadas: completadasTar, total: tars.length },
+        rotaciones: rotacionesRealizadas.length,
+        porcentaje: Math.round(((completadasMed + completadasTar) / (meds.length + tars.length)) * 100) || 0
+      };
     }
 
     // ==================== INICIALIZACIÓN ====================
