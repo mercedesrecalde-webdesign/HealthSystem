@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="description" content="Sistema de gestión de cuidados de enfermería para Patricio Recalde">
   <meta name="theme-color" content="#14b8a6">
   <meta name="mobile-web-app-capable" content="yes">
@@ -13,32 +15,65 @@
   <meta name="msapplication-TileColor" content="#14b8a6">
   <meta name="format-detection" content="telephone=no">
   <title>Recalde Health System</title>
-  
+
   <!-- PWA Manifest -->
   <link rel="manifest" href="./manifest.json">
-  
+
   <!-- Favicons -->
   <link rel="icon" type="image/png" sizes="32x32" href="./favicon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
-  
+
   <!-- Fallback favicon SVG -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%2314b8a6' rx='20' width='100' height='100'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white'>♥</text></svg>">
-  
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%2314b8a6' rx='20' width='100' height='100'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white'>♥</text></svg>">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { margin: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased; }
-    input, button, select, textarea { font-family: inherit; font-size: 16px; }
-    .hidden { display: none !important; }
-    .check-btn { transition: all 0.3s ease; }
-    .check-btn:active { transform: scale(0.95); }
-    .section-btn:active { transform: scale(0.98); }
-    
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    input,
+    button,
+    select,
+    textarea {
+      font-family: inherit;
+      font-size: 16px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .check-btn {
+      transition: all 0.3s ease;
+    }
+
+    .check-btn:active {
+      transform: scale(0.95);
+    }
+
+    .section-btn:active {
+      transform: scale(0.98);
+    }
+
     /* Safe area para notch en Android/iOS */
-    .safe-top { padding-top: env(safe-area-inset-top); }
-    .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
-    
+    .safe-top {
+      padding-top: env(safe-area-inset-top);
+    }
+
+    .safe-bottom {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
     /* Banner de instalación */
     .install-banner {
       position: fixed;
@@ -53,11 +88,15 @@
       justify-content: space-between;
       gap: 12px;
       z-index: 9999;
-      box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
       transform: translateY(100%);
       transition: transform 0.3s ease;
     }
-    .install-banner.show { transform: translateY(0); }
+
+    .install-banner.show {
+      transform: translateY(0);
+    }
+
     .install-banner button {
       background: white;
       color: #0891b2;
@@ -68,13 +107,14 @@
       cursor: pointer;
       white-space: nowrap;
     }
+
     .install-banner .close-btn {
       background: transparent;
       color: white;
       padding: 8px;
       font-size: 20px;
     }
-    
+
     /* Notificación de alarma */
     .alarm-notification {
       position: fixed;
@@ -84,21 +124,25 @@
       background: white;
       border-radius: 20px;
       padding: 20px 24px;
-      box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
       z-index: 10000;
       max-width: 90%;
       width: 400px;
       transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
+
     .alarm-notification.show {
       transform: translateX(-50%) translateY(0);
     }
+
     .alarm-notification.medicacion {
       border-left: 6px solid #f43f5e;
     }
+
     .alarm-notification.tarea {
       border-left: 6px solid #3b82f6;
     }
+
     .alarm-notification h3 {
       margin: 0 0 8px;
       font-size: 18px;
@@ -106,15 +150,18 @@
       align-items: center;
       gap: 10px;
     }
+
     .alarm-notification p {
       margin: 0 0 16px;
       color: #64748b;
       font-size: 14px;
     }
+
     .alarm-notification .buttons {
       display: flex;
       gap: 10px;
     }
+
     .alarm-notification button {
       flex: 1;
       padding: 12px;
@@ -124,15 +171,17 @@
       cursor: pointer;
       transition: all 0.2s;
     }
+
     .alarm-notification .btn-snooze {
       background: #f1f5f9;
       color: #475569;
     }
+
     .alarm-notification .btn-done {
       background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
       color: white;
     }
-    
+
     /* Indicador de guardado */
     .save-indicator {
       position: fixed;
@@ -149,28 +198,32 @@
       transition: all 0.3s ease;
       z-index: 9998;
     }
+
     .save-indicator.show {
       opacity: 1;
       transform: translateY(0);
     }
-    
+
     /* Toggle de alarmas */
     .alarm-toggle {
       display: flex;
       align-items: center;
       gap: 8px;
       padding: 8px 12px;
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 10px;
       cursor: pointer;
       transition: all 0.2s;
     }
+
     .alarm-toggle:hover {
-      background: rgba(255,255,255,0.2);
+      background: rgba(255, 255, 255, 0.2);
     }
+
     .alarm-toggle input {
       display: none;
     }
+
     .alarm-toggle .toggle-switch {
       width: 36px;
       height: 20px;
@@ -179,9 +232,11 @@
       position: relative;
       transition: all 0.3s;
     }
-    .alarm-toggle input:checked + .toggle-switch {
+
+    .alarm-toggle input:checked+.toggle-switch {
       background: #10b981;
     }
+
     .alarm-toggle .toggle-switch::after {
       content: '';
       position: absolute;
@@ -193,11 +248,13 @@
       left: 2px;
       transition: all 0.3s;
     }
-    .alarm-toggle input:checked + .toggle-switch::after {
+
+    .alarm-toggle input:checked+.toggle-switch::after {
       left: 18px;
     }
   </style>
 </head>
+
 <body>
   <!-- Notificación de alarma -->
   <div id="alarm-notification" class="alarm-notification">
@@ -208,10 +265,10 @@
       <button class="btn-done" onclick="dismissAlarm()">✓ Listo</button>
     </div>
   </div>
-  
+
   <!-- Indicador de guardado -->
   <div id="save-indicator" class="save-indicator">💾 Guardado</div>
-  
+
   <!-- Banner de instalación PWA -->
   <div id="install-banner" class="install-banner">
     <div style="flex: 1;">
@@ -223,18 +280,24 @@
   </div>
 
   <!-- ==================== PANTALLA DE INICIO ==================== -->
-  <div id="pantalla-inicio" class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 flex items-center justify-center">
+  <div id="pantalla-inicio"
+    class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 flex items-center justify-center">
     <div class="w-full max-w-md">
       <!-- Logo -->
       <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-28 h-28 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-3xl shadow-2xl mb-6 relative">
+        <div
+          class="inline-flex items-center justify-center w-28 h-28 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-3xl shadow-2xl mb-6 relative">
           <svg class="w-14 h-14 text-white" fill="white" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
           </svg>
-          <div class="absolute -bottom-1 -right-1 w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+          <div
+            class="absolute -bottom-1 -right-1 w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
             <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/>
-              <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/>
+              <path
+                d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3" />
+              <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4" />
+              <circle cx="20" cy="10" r="2" />
             </svg>
           </div>
         </div>
@@ -249,36 +312,46 @@
           <div>
             <label class="flex items-center gap-2 text-sm font-semibold text-slate-300 mb-2">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
               </svg>
               Enfermero/a a Cargo
             </label>
-            <input type="text" id="input-enfermero" class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:border-teal-400 focus:outline-none transition-all text-lg font-medium" placeholder="Nombre completo">
+            <input type="text" id="input-enfermero"
+              class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:border-teal-400 focus:outline-none transition-all text-lg font-medium"
+              placeholder="Nombre completo">
           </div>
           <div>
             <label class="flex items-center gap-2 text-sm font-semibold text-slate-300 mb-2">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
               Auxiliar de Enfermería
             </label>
-            <input type="text" id="input-auxiliar" class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:border-teal-400 focus:outline-none transition-all text-lg font-medium" placeholder="Nombre completo">
+            <input type="text" id="input-auxiliar"
+              class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:border-teal-400 focus:outline-none transition-all text-lg font-medium"
+              placeholder="Nombre completo">
           </div>
         </div>
 
         <!-- Botones de guardia -->
         <div class="grid grid-cols-2 gap-3 mb-4">
-          <button onclick="iniciarGuardia('diurna')" id="btn-diurna" class="p-4 rounded-2xl transition-all duration-300 bg-slate-700 text-slate-500 cursor-not-allowed" disabled>
+          <button onclick="iniciarGuardia('diurna')" id="btn-diurna"
+            class="p-4 rounded-2xl transition-all duration-300 bg-slate-700 text-slate-500 cursor-not-allowed" disabled>
             <svg class="w-8 h-8 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+              <circle cx="12" cy="12" r="4" />
+              <path
+                d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
             </svg>
             <p class="font-bold text-lg">Diurna</p>
             <p class="text-sm opacity-80">08:00 - 20:00</p>
           </button>
-          <button onclick="iniciarGuardia('nocturna')" id="btn-nocturna" class="p-4 rounded-2xl transition-all duration-300 bg-slate-700 text-slate-500 cursor-not-allowed" disabled>
+          <button onclick="iniciarGuardia('nocturna')" id="btn-nocturna"
+            class="p-4 rounded-2xl transition-all duration-300 bg-slate-700 text-slate-500 cursor-not-allowed" disabled>
             <svg class="w-8 h-8 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
             </svg>
             <p class="font-bold text-lg">Nocturna</p>
             <p class="text-sm opacity-80">20:00 - 08:00</p>
@@ -287,11 +360,16 @@
       </div>
 
       <!-- Botón Admin -->
-      <button onclick="mostrarLoginAdmin()" class="w-full py-3 bg-white/5 border border-white/10 rounded-2xl text-slate-400 font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-all">
+      <button onclick="mostrarLoginAdmin()" id="btn-admin-inicio"
+        class="w-full py-3 bg-white/5 border border-white/10 rounded-2xl text-slate-400 font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-all relative">
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
         </svg>
         Panel de Administración
+        <span id="badge-reportes-nuevos"
+          class="hidden absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse">0</span>
       </button>
 
       <!-- Hora actual -->
@@ -303,25 +381,34 @@
   </div>
 
   <!-- ==================== LOGIN ADMIN ==================== -->
-  <div id="pantalla-login-admin" class="hidden min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 flex items-center justify-center">
+  <div id="pantalla-login-admin"
+    class="hidden min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 flex items-center justify-center">
     <div class="w-full max-w-sm">
-      <button onclick="volverInicio()" class="mb-6 text-slate-400 flex items-center gap-2 hover:text-white transition-all">
+      <button onclick="volverInicio()"
+        class="mb-6 text-slate-400 flex items-center gap-2 hover:text-white transition-all">
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <path d="M9 22V12h6v10" />
         </svg>
         Volver al inicio
       </button>
       <div class="bg-white/10 backdrop-blur-xl rounded-3xl p-6 border border-white/20">
         <div class="text-center mb-6">
-          <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl mb-4">
+          <div
+            class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl mb-4">
             <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
             </svg>
           </div>
           <h2 class="text-2xl font-bold text-white">Administrador</h2>
         </div>
-        <input type="password" id="input-admin-password" class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:border-violet-400 focus:outline-none mb-4" placeholder="Contraseña">
-        <button onclick="loginAdmin()" class="w-full py-3 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-bold hover:shadow-lg transition-all">
+        <input type="password" id="input-admin-password"
+          class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:border-violet-400 focus:outline-none mb-4"
+          placeholder="Contraseña">
+        <button onclick="loginAdmin()"
+          class="w-full py-3 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-bold hover:shadow-lg transition-all">
           Ingresar
         </button>
         <p class="text-xs text-slate-500 text-center mt-3">Contraseña: recalde2024</p>
@@ -336,14 +423,17 @@
       <div class="max-w-4xl mx-auto flex items-center justify-between">
         <div class="flex items-center gap-3">
           <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
           </svg>
           <div>
             <h1 class="text-xl font-bold">Panel de Administración</h1>
             <p class="text-sm text-white/70">Recalde Health System</p>
           </div>
         </div>
-        <button onclick="volverInicio()" class="px-4 py-2 bg-white/20 rounded-xl font-semibold hover:bg-white/30 transition-all">
+        <button onclick="volverInicio()"
+          class="px-4 py-2 bg-white/20 rounded-xl font-semibold hover:bg-white/30 transition-all">
           Salir
         </button>
       </div>
@@ -352,27 +442,35 @@
     <!-- Tabs -->
     <div class="bg-white border-b sticky top-16 z-40">
       <div class="max-w-4xl mx-auto flex">
-        <button onclick="cambiarTabAdmin('medicacion')" id="tab-medicacion" class="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-violet-600 border-b-2 border-violet-600 bg-violet-50">
+        <button onclick="cambiarTabAdmin('medicacion')" id="tab-medicacion"
+          class="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-violet-600 border-b-2 border-violet-600 bg-violet-50">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/>
+            <path
+              d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
           </svg>
           Medicación
         </button>
-        <button onclick="cambiarTabAdmin('tareas')" id="tab-tareas" class="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-slate-500 hover:text-slate-700">
+        <button onclick="cambiarTabAdmin('tareas')" id="tab-tareas"
+          class="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-slate-500 hover:text-slate-700">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
           </svg>
           Tareas
         </button>
-        <button onclick="cambiarTabAdmin('rotacion')" id="tab-rotacion" class="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-slate-500 hover:text-slate-700">
+        <button onclick="cambiarTabAdmin('rotacion')" id="tab-rotacion"
+          class="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-slate-500 hover:text-slate-700">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
           </svg>
           Rotación
         </button>
-        <button onclick="cambiarTabAdmin('reportes')" id="tab-reportes" class="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-slate-500 hover:text-slate-700">
+        <button onclick="cambiarTabAdmin('reportes')" id="tab-reportes"
+          class="flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-slate-500 hover:text-slate-700">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
           </svg>
           Reportes
         </button>
@@ -386,19 +484,26 @@
         <div class="bg-white rounded-2xl shadow-lg p-4 mb-4">
           <h3 class="font-bold text-lg text-slate-800 mb-4">➕ Agregar Medicación</h3>
           <div class="grid grid-cols-2 gap-3 mb-3">
-            <input type="time" id="nuevo-med-hora" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
-            <select id="nuevo-med-guardia" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+            <input type="time" id="nuevo-med-hora"
+              class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+            <select id="nuevo-med-guardia"
+              class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
               <option value="diurna">Guardia Diurna</option>
               <option value="nocturna">Guardia Nocturna</option>
             </select>
           </div>
           <div class="grid grid-cols-4 gap-2 mb-3">
-            <input type="text" id="nuevo-med-nombre" placeholder="Medicamento" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
-            <input type="text" id="nuevo-med-dosis" placeholder="Dosis" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
-            <input type="text" id="nuevo-med-cantidad" placeholder="Cantidad" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
-            <input type="text" id="nuevo-med-obs" placeholder="Observaciones" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+            <input type="text" id="nuevo-med-nombre" placeholder="Medicamento"
+              class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+            <input type="text" id="nuevo-med-dosis" placeholder="Dosis"
+              class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+            <input type="text" id="nuevo-med-cantidad" placeholder="Cantidad"
+              class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+            <input type="text" id="nuevo-med-obs" placeholder="Observaciones"
+              class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
           </div>
-          <button onclick="agregarMedicacion()" class="px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all">
+          <button onclick="agregarMedicacion()"
+            class="px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all">
             💾 Guardar
           </button>
         </div>
@@ -411,17 +516,23 @@
         <div class="bg-white rounded-2xl shadow-lg p-4 mb-4">
           <h3 class="font-bold text-lg text-slate-800 mb-4">➕ Agregar Tarea</h3>
           <div class="grid grid-cols-2 gap-3 mb-3">
-            <input type="text" id="nueva-tarea-nombre" placeholder="Nombre de la tarea" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
-            <input type="text" id="nueva-tarea-horario" placeholder="Horario" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+            <input type="text" id="nueva-tarea-nombre" placeholder="Nombre de la tarea"
+              class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+            <input type="text" id="nueva-tarea-horario" placeholder="Horario"
+              class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
           </div>
-          <textarea id="nueva-tarea-detalle" placeholder="Detalle / Instrucciones" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none mb-3" rows="2"></textarea>
+          <textarea id="nueva-tarea-detalle" placeholder="Detalle / Instrucciones"
+            class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none mb-3"
+            rows="2"></textarea>
           <div class="grid grid-cols-2 gap-3 mb-3">
-            <select id="nueva-tarea-guardia" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+            <select id="nueva-tarea-guardia"
+              class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
               <option value="diurna">Guardia Diurna</option>
               <option value="nocturna">Guardia Nocturna</option>
               <option value="ambas">Ambas Guardias</option>
             </select>
-            <select id="nueva-tarea-tipo" class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+            <select id="nueva-tarea-tipo"
+              class="px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
               <option value="csv">Control Signos Vitales</option>
               <option value="higiene">Higiene</option>
               <option value="alimentacion">Alimentación</option>
@@ -431,7 +542,8 @@
               <option value="otro">Otro</option>
             </select>
           </div>
-          <button onclick="agregarTarea()" class="px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all">
+          <button onclick="agregarTarea()"
+            class="px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all">
             💾 Guardar Tarea
           </button>
         </div>
@@ -445,8 +557,10 @@
           <h3 class="font-bold text-lg text-slate-800 mb-4">Puntos de Control en Rotación</h3>
           <div id="lista-controles" class="space-y-2 mb-4"></div>
           <div class="flex gap-2">
-            <input type="text" id="nuevo-control" placeholder="Nuevo punto de control" class="flex-1 px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
-            <button onclick="agregarControl()" class="px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-semibold">
+            <input type="text" id="nuevo-control" placeholder="Nuevo punto de control"
+              class="flex-1 px-3 py-2 rounded-xl border border-slate-200 focus:border-violet-400 focus:outline-none">
+            <button onclick="agregarControl()"
+              class="px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-semibold">
               ➕
             </button>
           </div>
@@ -477,7 +591,8 @@
         <div class="bg-white rounded-2xl shadow-lg p-4 mb-4">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-bold text-lg text-slate-800">📊 Reportes de Guardia</h3>
-            <button onclick="exportarReportesCSV()" class="px-4 py-2 bg-emerald-500 text-white rounded-xl font-semibold text-sm hover:bg-emerald-600 transition-all">
+            <button onclick="exportarReportesCSV()"
+              class="px-4 py-2 bg-emerald-500 text-white rounded-xl font-semibold text-sm hover:bg-emerald-600 transition-all">
               📥 Exportar CSV
             </button>
           </div>
@@ -486,7 +601,8 @@
           <div id="sin-reportes" class="hidden text-center py-12">
             <div class="text-6xl mb-4">📋</div>
             <p class="text-slate-500 font-medium">No hay reportes todavía</p>
-            <p class="text-slate-400 text-sm">Los reportes aparecerán aquí cuando los enfermeros envíen sus informes de guardia</p>
+            <p class="text-slate-400 text-sm">Los reportes aparecerán aquí cuando los enfermeros envíen sus informes de
+              guardia</p>
           </div>
         </div>
       </div>
@@ -502,7 +618,8 @@
           <div class="flex items-center gap-3">
             <div id="logo-guardia" class="p-2 rounded-xl shadow-lg">
               <svg class="w-6 h-6 text-white" fill="white" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-                <path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/>
+                <path
+                  d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
               </svg>
             </div>
             <div>
@@ -516,9 +633,10 @@
               <span class="toggle-switch"></span>
               <span id="alarm-toggle-label" class="text-xs font-semibold">🔔</span>
             </label>
-            <button onclick="confirmarSalir()" id="btn-home-guardia" class="px-3 py-2 rounded-xl flex items-center gap-1.5 font-semibold text-sm">
+            <button onclick="confirmarSalir()" id="btn-home-guardia"
+              class="px-3 py-2 rounded-xl flex items-center gap-1.5 font-semibold text-sm">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
               </svg>
               Salir
             </button>
@@ -550,8 +668,10 @@
         <div class="flex items-center gap-3 mb-4">
           <div id="icono-sv" class="p-2 rounded-xl">
             <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/>
-              <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/>
+              <path
+                d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3" />
+              <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4" />
+              <circle cx="20" cy="10" r="2" />
             </svg>
           </div>
           <div>
@@ -562,46 +682,55 @@
         <div class="grid grid-cols-3 gap-2 mb-2">
           <div>
             <label id="label-pa" class="text-xs font-semibold block text-center mb-1">PA</label>
-            <input type="text" id="sv-pa" placeholder="120/80" class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
+            <input type="text" id="sv-pa" placeholder="120/80"
+              class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
           </div>
           <div>
             <label id="label-fc" class="text-xs font-semibold block text-center mb-1">FC</label>
-            <input type="text" id="sv-fc" placeholder="70" class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
+            <input type="text" id="sv-fc" placeholder="70"
+              class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
           </div>
           <div>
             <label id="label-temp" class="text-xs font-semibold block text-center mb-1">T°</label>
-            <input type="text" id="sv-temp" placeholder="36.5" class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
+            <input type="text" id="sv-temp" placeholder="36.5"
+              class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
           </div>
         </div>
         <div class="grid grid-cols-3 gap-2">
           <div>
             <label id="label-spo2" class="text-xs font-semibold block text-center mb-1">SpO2</label>
-            <input type="text" id="sv-spo2" placeholder="98" class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
+            <input type="text" id="sv-spo2" placeholder="98"
+              class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
           </div>
           <div>
             <label id="label-fr" class="text-xs font-semibold block text-center mb-1">FR</label>
-            <input type="text" id="sv-fr" placeholder="16" class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
+            <input type="text" id="sv-fr" placeholder="16"
+              class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
           </div>
           <div>
             <label id="label-gluc" class="text-xs font-semibold block text-center mb-1">Gluc 🩸</label>
-            <input type="text" id="sv-gluc" placeholder="mg/dL" class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
+            <input type="text" id="sv-gluc" placeholder="mg/dL"
+              class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
           </div>
         </div>
       </div>
 
       <!-- Sección Medicación -->
       <div>
-        <button onclick="toggleSeccion('medicacion-guardia')" id="btn-seccion-medicacion" class="section-btn w-full flex items-center justify-between p-4 rounded-2xl mb-3 bg-gradient-to-r from-rose-400 to-pink-500">
+        <button onclick="toggleSeccion('medicacion-guardia')" id="btn-seccion-medicacion"
+          class="section-btn w-full flex items-center justify-between p-4 rounded-2xl mb-3 bg-gradient-to-r from-rose-400 to-pink-500">
           <div class="flex items-center gap-3">
             <div class="p-2 bg-white/30 rounded-xl backdrop-blur-sm">
               <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/>
+                <path
+                  d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
               </svg>
             </div>
             <h2 class="text-xl font-bold text-white tracking-tight">Medicación</h2>
           </div>
-          <svg id="chevron-medicacion" class="w-6 h-6 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path d="m18 15-6-6-6 6"/>
+          <svg id="chevron-medicacion" class="w-6 h-6 text-white/80" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor" stroke-width="2">
+            <path d="m18 15-6-6-6 6" />
           </svg>
         </button>
         <div id="seccion-medicacion-guardia" class="space-y-3"></div>
@@ -609,17 +738,20 @@
 
       <!-- Sección Tareas -->
       <div>
-        <button onclick="toggleSeccion('tareas-guardia')" id="btn-seccion-tareas" class="section-btn w-full flex items-center justify-between p-4 rounded-2xl mb-3 bg-gradient-to-r from-sky-400 to-blue-500">
+        <button onclick="toggleSeccion('tareas-guardia')" id="btn-seccion-tareas"
+          class="section-btn w-full flex items-center justify-between p-4 rounded-2xl mb-3 bg-gradient-to-r from-sky-400 to-blue-500">
           <div class="flex items-center gap-3">
             <div class="p-2 bg-white/30 rounded-xl backdrop-blur-sm">
               <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
               </svg>
             </div>
             <h2 class="text-xl font-bold text-white tracking-tight">Tareas de Cuidado</h2>
           </div>
-          <svg id="chevron-tareas" class="w-6 h-6 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path d="m18 15-6-6-6 6"/>
+          <svg id="chevron-tareas" class="w-6 h-6 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="2">
+            <path d="m18 15-6-6-6 6" />
           </svg>
         </button>
         <div id="seccion-tareas-guardia" class="space-y-3"></div>
@@ -627,17 +759,20 @@
 
       <!-- Sección Rotaciones -->
       <div>
-        <button onclick="toggleSeccion('rotaciones-guardia')" id="btn-seccion-rotaciones" class="section-btn w-full flex items-center justify-between p-4 rounded-2xl mb-3 bg-gradient-to-r from-violet-400 to-purple-500">
+        <button onclick="toggleSeccion('rotaciones-guardia')" id="btn-seccion-rotaciones"
+          class="section-btn w-full flex items-center justify-between p-4 rounded-2xl mb-3 bg-gradient-to-r from-violet-400 to-purple-500">
           <div class="flex items-center gap-3">
             <div class="p-2 bg-white/30 rounded-xl backdrop-blur-sm">
               <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
               </svg>
             </div>
             <h2 id="titulo-rotaciones" class="text-xl font-bold text-white tracking-tight">Rotaciones (0)</h2>
           </div>
-          <svg id="chevron-rotaciones" class="w-6 h-6 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path d="m18 15-6-6-6 6"/>
+          <svg id="chevron-rotaciones" class="w-6 h-6 text-white/80" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor" stroke-width="2">
+            <path d="m18 15-6-6-6 6" />
           </svg>
         </button>
         <div id="seccion-rotaciones-guardia" class="rounded-2xl p-4 border"></div>
@@ -647,9 +782,11 @@
     <!-- Botón Flotante Informe -->
     <div id="footer-guardia" class="fixed bottom-0 left-0 right-0 p-4">
       <div class="max-w-2xl mx-auto">
-        <button onclick="mostrarInforme()" id="btn-generar-informe" class="w-full py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 font-bold text-lg transition-all text-white">
+        <button onclick="mostrarInforme()" id="btn-generar-informe"
+          class="w-full py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 font-bold text-lg transition-all text-white">
           <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
           </svg>
           Generar Informe de Guardia
         </button>
@@ -665,7 +802,8 @@
           <div class="flex items-center gap-3">
             <div id="icono-informe" class="p-3 rounded-2xl">
               <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
               </svg>
             </div>
             <div>
@@ -673,7 +811,8 @@
               <p id="fecha-informe" class=""></p>
             </div>
           </div>
-          <button onclick="volverGuardia()" id="btn-volver-informe" class="px-4 py-2 rounded-xl font-semibold transition-all">
+          <button onclick="volverGuardia()" id="btn-volver-informe"
+            class="px-4 py-2 rounded-xl font-semibold transition-all">
             Volver
           </button>
         </div>
@@ -703,7 +842,8 @@
             <span id="valor-progreso-informe" class="text-2xl font-black">0%</span>
           </div>
           <div id="barra-progreso-informe-bg" class="h-4 rounded-full overflow-hidden">
-            <div id="barra-progreso-informe" class="h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+            <div id="barra-progreso-informe" class="h-full rounded-full transition-all duration-500" style="width: 0%">
+            </div>
           </div>
         </div>
       </div>
@@ -711,8 +851,10 @@
       <!-- Resumen Medicación -->
       <div id="card-resumen-medicacion" class="rounded-2xl p-4 mb-3 border">
         <div class="flex items-center gap-2 mb-3">
-          <svg id="icono-med-informe" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/>
+          <svg id="icono-med-informe" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="2">
+            <path
+              d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
           </svg>
           <h3 id="titulo-med-informe" class="font-bold">Medicación</h3>
         </div>
@@ -722,8 +864,10 @@
       <!-- Resumen Tareas -->
       <div id="card-resumen-tareas" class="rounded-2xl p-4 mb-3 border">
         <div class="flex items-center gap-2 mb-3">
-          <svg id="icono-tar-informe" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+          <svg id="icono-tar-informe" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
           </svg>
           <h3 id="titulo-tar-informe" class="font-bold">Tareas de Cuidado</h3>
         </div>
@@ -733,8 +877,10 @@
       <!-- Resumen Rotaciones -->
       <div id="card-resumen-rotaciones" class="rounded-2xl p-4 mb-3 border">
         <div class="flex items-center gap-2 mb-3">
-          <svg id="icono-rot-informe" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+          <svg id="icono-rot-informe" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
           </svg>
           <h3 id="titulo-rot-informe" class="font-bold">Rotaciones Realizadas: 0</h3>
         </div>
@@ -744,24 +890,41 @@
       <!-- Resumen Signos Vitales -->
       <div id="card-resumen-sv" class="rounded-2xl p-4 mb-3 border">
         <div class="flex items-center gap-2 mb-3">
-          <svg id="icono-sv-informe" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          <svg id="icono-sv-informe" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="2">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
           </svg>
           <h3 id="titulo-sv-informe" class="font-bold">Signos Vitales</h3>
         </div>
         <div id="lista-sv-informe" class="grid grid-cols-3 gap-2"></div>
       </div>
 
+      <!-- Mensaje Importante para el Administrador -->
+      <div id="card-mensaje-importante"
+        class="rounded-2xl p-4 mb-4 border border-red-200 bg-gradient-to-r from-red-50 to-orange-50">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-xl">⚠️</span>
+          <h3 id="titulo-mensaje" class="font-bold text-red-700">Mensaje Importante para el Administrador</h3>
+        </div>
+        <p class="text-xs text-red-600 mb-2">Este mensaje se destacará en el panel de administración</p>
+        <textarea id="input-mensaje-importante"
+          class="w-full p-3 rounded-xl border-2 border-red-200 outline-none min-h-16 bg-white focus:border-red-400"
+          placeholder="Escribí aquí cualquier mensaje urgente o importante que necesites comunicar..."></textarea>
+      </div>
+
       <!-- Observaciones -->
       <div id="card-observaciones" class="rounded-2xl p-4 mb-4 border">
         <h3 id="titulo-obs" class="font-bold mb-2">Observaciones</h3>
-        <textarea id="input-observaciones" class="w-full p-3 rounded-xl border-2 outline-none min-h-24" placeholder="Agregar observaciones relevantes..."></textarea>
+        <textarea id="input-observaciones" class="w-full p-3 rounded-xl border-2 outline-none min-h-24"
+          placeholder="Agregar observaciones relevantes..."></textarea>
       </div>
 
       <!-- Botón Enviar -->
-      <button onclick="enviarInforme()" id="btn-enviar-informe" class="w-full py-4 rounded-2xl text-lg font-bold tracking-wide transition-all duration-300 flex items-center justify-center gap-3 text-white">
+      <button onclick="enviarInforme()" id="btn-enviar-informe"
+        class="w-full py-4 rounded-2xl text-lg font-bold tracking-wide transition-all duration-300 flex items-center justify-center gap-3 text-white">
         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>
+          <path d="m22 2-7 20-4-9-9-4Z" />
+          <path d="M22 2 11 13" />
         </svg>
         <span id="texto-btn-enviar">Enviar Informe al Administrador</span>
       </button>
@@ -817,7 +980,7 @@
     let tareasCompletadas = {};
     let rotacionesRealizadas = [];
     let seccionesExpandidas = { 'medicacion-guardia': true, 'tareas-guardia': true, 'rotaciones-guardia': true };
-    
+
     // Variables para alarmas
     let alarmasActivas = true;
     let alarmaActual = null;
@@ -839,25 +1002,25 @@
       try {
         const ctx = initAudio();
         const now = ctx.currentTime;
-        
+
         // Crear osciladores para sonido de alarma médica
         for (let i = 0; i < 3; i++) {
           const osc1 = ctx.createOscillator();
           const osc2 = ctx.createOscillator();
           const gain = ctx.createGain();
-          
+
           osc1.type = 'sine';
           osc2.type = 'sine';
           osc1.frequency.value = 880; // La agudo
           osc2.frequency.value = 660; // Mi
-          
+
           gain.gain.setValueAtTime(0.3, now + i * 0.6);
           gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.6 + 0.5);
-          
+
           osc1.connect(gain);
           osc2.connect(gain);
           gain.connect(ctx.destination);
-          
+
           osc1.start(now + i * 0.6);
           osc2.start(now + i * 0.6);
           osc1.stop(now + i * 0.6 + 0.5);
@@ -873,23 +1036,23 @@
       try {
         const ctx = initAudio();
         const now = ctx.currentTime;
-        
+
         // Sonido de campana suave
         for (let i = 0; i < 2; i++) {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
-          
+
           osc.type = 'sine';
           osc.frequency.setValueAtTime(523, now + i * 0.4); // Do
           osc.frequency.setValueAtTime(659, now + i * 0.4 + 0.1); // Mi
           osc.frequency.setValueAtTime(784, now + i * 0.4 + 0.2); // Sol
-          
+
           gain.gain.setValueAtTime(0.2, now + i * 0.4);
           gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.4 + 0.35);
-          
+
           osc.connect(gain);
           gain.connect(ctx.destination);
-          
+
           osc.start(now + i * 0.4);
           osc.stop(now + i * 0.4 + 0.4);
         }
@@ -907,21 +1070,21 @@
       const notification = document.getElementById('alarm-notification');
       const titleEl = document.getElementById('alarm-title');
       const descEl = document.getElementById('alarm-description');
-      
+
       notification.className = 'alarm-notification ' + tipo;
       titleEl.innerHTML = (tipo === 'medicacion' ? '💊' : '📋') + ' ' + titulo;
       descEl.textContent = descripcion;
-      
+
       alarmaActual = { tipo, id };
       notification.classList.add('show');
-      
+
       // Reproducir sonido
       if (tipo === 'medicacion') {
         playMedicacionSound();
       } else {
         playTareaSound();
       }
-      
+
       // Vibrar si está disponible
       if (navigator.vibrate) {
         navigator.vibrate(tipo === 'medicacion' ? [200, 100, 200, 100, 200] : [200, 100, 200]);
@@ -951,43 +1114,43 @@
 
     function checkAlarms() {
       if (!alarmasActivas || !guardiaActual) return;
-      
+
       const now = new Date();
       const currentHour = now.getHours().toString().padStart(2, '0');
       const currentMinute = now.getMinutes().toString().padStart(2, '0');
       const currentTime = currentHour + ':' + currentMinute;
-      
+
       // Revisar medicación
       getMedicacionGuardia().forEach(med => {
         const alarmId = 'med-' + med.id;
-        
+
         // Si ya fue completada o disparada, no alarmar
         if (medicacionCompletada[med.id] || alarmasDisparadas[alarmId]) return;
-        
+
         // Si está pospuesta y no pasó el tiempo, no alarmar
         if (alarmasPospuestas[alarmId] && Date.now() < alarmasPospuestas[alarmId]) return;
-        
+
         // Comparar hora (con margen de 1 minuto)
         if (med.hora === currentTime || (currentMinute === '00' && med.hora === currentHour + ':00')) {
           const meds = med.medicamentos.map(m => m.nombre).join(', ');
           showAlarmNotification('medicacion', 'Medicación - ' + med.hora, meds, alarmId);
         }
       });
-      
+
       // Revisar tareas con horario específico
       getTareasGuardia().forEach(tarea => {
         const alarmId = 'tarea-' + tarea.id;
-        
+
         if (tareasCompletadas[tarea.id] || alarmasDisparadas[alarmId]) return;
         if (alarmasPospuestas[alarmId] && Date.now() < alarmasPospuestas[alarmId]) return;
-        
+
         // Solo tareas con horario específico (no "Permanente", "Cada 2 horas", etc.)
         const horaMatch = tarea.horario.match(/^(\d{2}):(\d{2})/);
         if (horaMatch && tarea.horario.substring(0, 5) === currentTime) {
           showAlarmNotification('tarea', tarea.nombre, tarea.detalle, alarmId);
         }
       });
-      
+
       // Recordatorio de rotación cada 2 horas
       const rotacionAlarmId = 'rotacion-' + currentHour;
       if (currentMinute === '00' && parseInt(currentHour) % 2 === 0) {
@@ -1003,7 +1166,7 @@
     // ==================== PERSISTENCIA (LocalStorage) ====================
     function guardarEstado() {
       if (!guardiaActual) return;
-      
+
       const estado = {
         guardiaActual,
         enfermero,
@@ -1025,7 +1188,7 @@
         fechaGuardia: new Date().toDateString(),
         timestamp: Date.now()
       };
-      
+
       localStorage.setItem('recaldeHealthGuardia', JSON.stringify(estado));
       mostrarIndicadorGuardado();
     }
@@ -1034,23 +1197,23 @@
       try {
         const guardado = localStorage.getItem('recaldeHealthGuardia');
         if (!guardado) return null;
-        
+
         const estado = JSON.parse(guardado);
-        
+
         // Verificar que sea del mismo día
         if (estado.fechaGuardia !== new Date().toDateString()) {
           // Es de otro día, limpiar
           localStorage.removeItem('recaldeHealthGuardia');
           return null;
         }
-        
+
         // Verificar que la guardia aún sea válida (no más de 12 horas)
         const horasTranscurridas = (Date.now() - estado.timestamp) / (1000 * 60 * 60);
         if (horasTranscurridas > 12) {
           localStorage.removeItem('recaldeHealthGuardia');
           return null;
         }
-        
+
         return estado;
       } catch (e) {
         return null;
@@ -1067,11 +1230,11 @@
       alarmasActivas = estado.alarmasActivas !== false;
       alarmasPospuestas = estado.alarmasPospuestas || {};
       alarmasDisparadas = estado.alarmasDisparadas || {};
-      
+
       // Restaurar inputs
       document.getElementById('input-enfermero').value = enfermero;
       document.getElementById('input-auxiliar').value = auxiliar;
-      
+
       return estado.signosVitales;
     }
 
@@ -1098,7 +1261,7 @@
       const opciones = { weekday: 'long', day: 'numeric', month: 'long' };
       document.getElementById('fecha-actual').textContent = now.toLocaleDateString('es-AR', opciones);
       document.getElementById('hora-actual').textContent = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-      
+
       if (document.getElementById('hora-guardia')) {
         document.getElementById('hora-guardia').textContent = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
       }
@@ -1107,10 +1270,10 @@
     function validarFormulario() {
       enfermero = document.getElementById('input-enfermero').value.trim();
       auxiliar = document.getElementById('input-auxiliar').value.trim();
-      
+
       const btnDiurna = document.getElementById('btn-diurna');
       const btnNocturna = document.getElementById('btn-nocturna');
-      
+
       if (enfermero && auxiliar) {
         btnDiurna.disabled = false;
         btnDiurna.className = 'p-4 rounded-2xl transition-all duration-300 bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg hover:scale-105 active:scale-95 cursor-pointer';
@@ -1174,7 +1337,7 @@
       });
       document.getElementById('tab-' + tab).className = 'flex-1 py-4 flex items-center justify-center gap-2 font-semibold text-violet-600 border-b-2 border-violet-600 bg-violet-50';
       document.getElementById('content-' + tab).classList.remove('hidden');
-      
+
       // Si es la pestaña de reportes, renderizar
       if (tab === 'reportes') {
         renderizarReportesAdmin();
@@ -1307,21 +1470,35 @@
       const reportes = obtenerReportes();
       const lista = document.getElementById('lista-reportes');
       const sinReportes = document.getElementById('sin-reportes');
-      
+
       if (reportes.length === 0) {
         lista.innerHTML = '';
         sinReportes.classList.remove('hidden');
         return;
       }
-      
+
       sinReportes.classList.add('hidden');
-      
+
       lista.innerHTML = reportes.map(r => {
         const esNocturna = r.guardia === 'nocturna';
         const progreso = r.progreso ? r.progreso.porcentaje : 0;
-        
+        const tieneMensajeImportante = r.mensajeImportante && r.mensajeImportante.trim() !== '';
+        const noLeido = r.leido === false;
+
         return `
-          <div class="bg-gradient-to-r ${esNocturna ? 'from-emerald-50 to-teal-50 border-emerald-200' : 'from-amber-50 to-orange-50 border-amber-200'} rounded-2xl p-4 border">
+          <div class="bg-gradient-to-r ${esNocturna ? 'from-emerald-50 to-teal-50 border-emerald-200' : 'from-amber-50 to-orange-50 border-amber-200'} rounded-2xl p-4 border ${noLeido ? 'ring-2 ring-blue-400 ring-offset-2' : ''}">
+            ${noLeido ? '<div class="flex items-center gap-2 mb-2"><span class="px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded-full animate-pulse">🆕 NUEVO</span></div>' : ''}
+            
+            ${tieneMensajeImportante ? `
+            <div class="bg-red-100 border-2 border-red-300 rounded-xl p-3 mb-3">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-lg">⚠️</span>
+                <span class="font-bold text-red-700 text-sm">MENSAJE IMPORTANTE</span>
+              </div>
+              <p class="text-red-800 font-medium">${r.mensajeImportante}</p>
+            </div>
+            ` : ''}
+            
             <div class="flex items-start justify-between mb-3">
               <div>
                 <div class="flex items-center gap-2 mb-1">
@@ -1333,9 +1510,12 @@
                 </div>
                 <p class="text-sm text-slate-600">${r.fecha}</p>
               </div>
-              <button onclick="eliminarReporte(${r.id})" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all" title="Eliminar reporte">
-                🗑️
-              </button>
+              <div class="flex gap-1">
+                ${noLeido ? `<button onclick="marcarComoLeido(${r.id})" class="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all" title="Marcar como leído">✓</button>` : ''}
+                <button onclick="eliminarReporte(${r.id})" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all" title="Eliminar reporte">
+                  🗑️
+                </button>
+              </div>
             </div>
             
             <div class="grid grid-cols-2 gap-3 mb-3">
@@ -1401,7 +1581,7 @@
       const reportes = obtenerReportes();
       const r = reportes.find(rep => rep.id === id);
       if (!r) return;
-      
+
       let detalle = `REPORTE DE GUARDIA\n`;
       detalle += `═══════════════════════════════\n\n`;
       detalle += `📅 Fecha: ${r.fecha}\n`;
@@ -1409,14 +1589,14 @@
       detalle += `👨‍⚕️ Enfermero/a: ${r.enfermero}\n`;
       detalle += `👩‍⚕️ Auxiliar: ${r.auxiliar}\n`;
       detalle += `📊 Progreso: ${r.progreso ? r.progreso.porcentaje : 0}%\n\n`;
-      
+
       detalle += `SIGNOS VITALES\n`;
       detalle += `───────────────────────────────\n`;
       if (r.signosVitales) {
         detalle += `PA: ${r.signosVitales.pa || '-'} | FC: ${r.signosVitales.fc || '-'} | T°: ${r.signosVitales.temp || '-'}\n`;
         detalle += `SpO2: ${r.signosVitales.spo2 || '-'} | FR: ${r.signosVitales.fr || '-'} | Gluc: ${r.signosVitales.gluc || '-'}\n\n`;
       }
-      
+
       detalle += `MEDICACIÓN\n`;
       detalle += `───────────────────────────────\n`;
       if (r.medicacionDetalle) {
@@ -1427,7 +1607,7 @@
         });
       }
       detalle += `\n`;
-      
+
       detalle += `TAREAS\n`;
       detalle += `───────────────────────────────\n`;
       if (r.tareasDetalle) {
@@ -1438,7 +1618,7 @@
         });
       }
       detalle += `\n`;
-      
+
       detalle += `ROTACIONES: ${r.rotacionesRealizadas ? r.rotacionesRealizadas.length : 0}\n`;
       detalle += `───────────────────────────────\n`;
       if (r.rotacionesRealizadas && r.rotacionesRealizadas.length > 0) {
@@ -1447,13 +1627,13 @@
         });
       }
       detalle += `\n`;
-      
+
       if (r.observaciones) {
         detalle += `OBSERVACIONES\n`;
         detalle += `───────────────────────────────\n`;
         detalle += `${r.observaciones}\n`;
       }
-      
+
       alert(detalle);
     }
 
@@ -1463,15 +1643,15 @@
         alert('No hay reportes para exportar');
         return;
       }
-      
+
       // Crear CSV
       let csv = 'Fecha,Guardia,Enfermero,Auxiliar,Progreso,Med Completadas,Med Total,Tareas Completadas,Tareas Total,Rotaciones,PA,FC,Temp,SpO2,FR,Glucemia,Observaciones\n';
-      
+
       reportes.forEach(r => {
         const prog = r.progreso || {};
         const sv = r.signosVitales || {};
         const obs = (r.observaciones || '').replace(/"/g, '""').replace(/\n/g, ' ');
-        
+
         csv += `"${r.fecha}",`;
         csv += `"${r.guardiaTexto || r.guardia}",`;
         csv += `"${r.enfermero}",`;
@@ -1490,7 +1670,7 @@
         csv += `"${sv.gluc || ''}",`;
         csv += `"${obs}"\n`;
       });
-      
+
       // Descargar
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
@@ -1502,7 +1682,7 @@
     // ==================== GUARDIA ====================
     function iniciarGuardia(tipo, signosVitalesRestaurados = null) {
       guardiaActual = tipo;
-      
+
       // Si no hay datos restaurados, limpiar todo
       if (!signosVitalesRestaurados) {
         medicacionCompletada = {};
@@ -1511,11 +1691,11 @@
         alarmasPospuestas = {};
         alarmasDisparadas = {};
       }
-      
+
       mostrarPantalla('pantalla-guardia');
       aplicarEstilosGuardia(tipo);
       renderizarGuardia();
-      
+
       // Restaurar signos vitales si existen
       if (signosVitalesRestaurados) {
         document.getElementById('sv-pa').value = signosVitalesRestaurados.pa || '';
@@ -1525,17 +1705,17 @@
         document.getElementById('sv-fr').value = signosVitalesRestaurados.fr || '';
         document.getElementById('sv-gluc').value = signosVitalesRestaurados.gluc || '';
       }
-      
+
       // Configurar toggle de alarmas
       document.getElementById('alarm-toggle').checked = alarmasActivas;
-      
+
       // Iniciar chequeo de alarmas cada 30 segundos
       if (checkAlarmsInterval) clearInterval(checkAlarmsInterval);
       checkAlarmsInterval = setInterval(checkAlarms, 30000);
-      
+
       // Guardar estado inicial
       guardarEstado();
-      
+
       // Agregar listeners para guardar signos vitales
       ['sv-pa', 'sv-fc', 'sv-temp', 'sv-spo2', 'sv-fr', 'sv-gluc'].forEach(id => {
         document.getElementById(id).addEventListener('change', guardarEstado);
@@ -1545,7 +1725,7 @@
     function aplicarEstilosGuardia(tipo) {
       const esNocturna = tipo === 'nocturna';
       const pantallaGuardia = document.getElementById('pantalla-guardia');
-      
+
       if (esNocturna) {
         pantallaGuardia.className = 'min-h-screen bg-gradient-to-br from-emerald-900 via-green-800 to-teal-900';
         document.getElementById('header-guardia').className = 'sticky top-0 z-50 p-4 bg-emerald-900/90 backdrop-blur-xl border-b border-emerald-700/50';
@@ -1570,7 +1750,7 @@
         document.getElementById('footer-guardia').className = 'fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-emerald-900 via-emerald-900 to-transparent';
         document.getElementById('btn-generar-informe').className = 'w-full py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 font-bold text-lg transition-all text-white bg-gradient-to-r from-emerald-400 to-teal-400';
         document.getElementById('seccion-rotaciones-guardia').className = 'rounded-2xl p-4 border bg-white/10 backdrop-blur-xl border-white/20';
-        
+
         // Inputs
         ['sv-pa', 'sv-fc', 'sv-temp', 'sv-spo2', 'sv-fr', 'sv-gluc'].forEach(id => {
           document.getElementById(id).className = 'w-full px-2 py-2 text-center text-sm rounded-xl border outline-none bg-white/5 border-white/20 text-white placeholder-slate-500';
@@ -1602,7 +1782,7 @@
         document.getElementById('footer-guardia').className = 'fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent';
         document.getElementById('btn-generar-informe').className = 'w-full py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 font-bold text-lg transition-all text-white bg-gradient-to-r from-amber-400 to-orange-500';
         document.getElementById('seccion-rotaciones-guardia').className = 'rounded-2xl p-4 border bg-white shadow-lg border-slate-100';
-        
+
         // Inputs
         ['sv-pa', 'sv-fc', 'sv-temp', 'sv-spo2', 'sv-fr', 'sv-gluc'].forEach(id => {
           document.getElementById(id).className = 'w-full px-2 py-2 text-center text-sm rounded-xl border outline-none border-slate-200 focus:border-amber-400';
@@ -1648,7 +1828,7 @@
       const esNocturna = guardiaActual === 'nocturna';
       const lista = document.getElementById('seccion-medicacion-guardia');
       const meds = getMedicacionGuardia();
-      
+
       lista.innerHTML = meds.map(med => {
         const completado = medicacionCompletada[med.id];
         return `
@@ -1675,11 +1855,10 @@
                   ` : ''}
                 </div>
               </div>
-              <button onclick="toggleMedicacion(${med.id})" class="check-btn w-12 h-12 rounded-2xl flex items-center justify-center ${
-                completado
-                  ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-lg'
-                  : 'bg-white border-2 border-dashed border-slate-300 text-slate-400 hover:border-slate-400'
-              }">
+              <button onclick="toggleMedicacion(${med.id})" class="check-btn w-12 h-12 rounded-2xl flex items-center justify-center ${completado
+            ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-lg'
+            : 'bg-white border-2 border-dashed border-slate-300 text-slate-400 hover:border-slate-400'
+          }">
                 ${completado ? '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
               </button>
             </div>
@@ -1692,7 +1871,7 @@
       const esNocturna = guardiaActual === 'nocturna';
       const lista = document.getElementById('seccion-tareas-guardia');
       const tars = getTareasGuardia();
-      
+
       lista.innerHTML = tars.map(t => {
         const completado = tareasCompletadas[t.id];
         return `
@@ -1708,11 +1887,10 @@
               </div>
               <p class="text-sm ${esNocturna ? 'text-slate-400' : 'text-slate-500'}">${t.detalle}</p>
             </div>
-            <button onclick="toggleTarea(${t.id})" class="check-btn w-12 h-12 rounded-2xl flex items-center justify-center ${
-              completado
-                ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-lg'
-                : 'bg-white border-2 border-dashed border-slate-300 text-slate-400 hover:border-slate-400'
-            }">
+            <button onclick="toggleTarea(${t.id})" class="check-btn w-12 h-12 rounded-2xl flex items-center justify-center ${completado
+            ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-lg'
+            : 'bg-white border-2 border-dashed border-slate-300 text-slate-400 hover:border-slate-400'
+          }">
               ${completado ? '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
             </button>
           </div>
@@ -1723,20 +1901,19 @@
     function renderizarRotacionesGuardia() {
       const esNocturna = guardiaActual === 'nocturna';
       const container = document.getElementById('seccion-rotaciones-guardia');
-      
+
       document.getElementById('titulo-rotaciones').textContent = `Rotaciones (${rotacionesRealizadas.length})`;
-      
+
       container.innerHTML = `
         <p class="text-sm mb-4 ${esNocturna ? 'text-slate-300' : 'text-slate-600'}">
           Registrar cada rotación realizada. Secuencia: Dorsal → Lateral Der 30° → Dorsal → Lateral Izq 30°
         </p>
         <div class="grid grid-cols-2 gap-2 mb-4">
           ${['Decúbito Dorsal', 'Lateral Derecho 30°', 'Lateral Izquierdo 30°', 'Sentado en Sillón'].map(pos => `
-            <button onclick="agregarRotacion('${pos}')" class="p-3 rounded-xl font-semibold text-sm transition-all ${
-              esNocturna
-                ? 'bg-violet-500/30 text-violet-200 hover:bg-violet-500/50 active:scale-95'
-                : 'bg-violet-100 text-violet-700 hover:bg-violet-200 active:scale-95'
-            }">
+            <button onclick="agregarRotacion('${pos}')" class="p-3 rounded-xl font-semibold text-sm transition-all ${esNocturna
+          ? 'bg-violet-500/30 text-violet-200 hover:bg-violet-500/50 active:scale-95'
+          : 'bg-violet-100 text-violet-700 hover:bg-violet-200 active:scale-95'
+        }">
               ${pos}
             </button>
           `).join('')}
@@ -1804,7 +1981,7 @@
       const seccion = document.getElementById('seccion-' + id);
       const chevron = document.getElementById('chevron-' + id.replace('-guardia', ''));
       seccionesExpandidas[id] = !seccionesExpandidas[id];
-      
+
       if (seccionesExpandidas[id]) {
         seccion.classList.remove('hidden');
         chevron.innerHTML = '<path d="m18 15-6-6-6 6"/>';
@@ -1824,7 +2001,7 @@
       const total = totalMed + totalTar;
       const completadas = completadasMed + completadasTar;
       const progreso = total > 0 ? Math.round((completadas / total) * 100) : 0;
-      
+
       document.getElementById('valor-progreso').textContent = progreso + '%';
       document.getElementById('barra-progreso').style.width = progreso + '%';
     }
@@ -1843,7 +2020,7 @@
     function aplicarEstilosInforme() {
       const esNocturna = guardiaActual === 'nocturna';
       const pantalla = document.getElementById('pantalla-informe');
-      
+
       if (esNocturna) {
         pantalla.className = 'min-h-screen p-4 bg-gradient-to-br from-emerald-900 via-green-800 to-teal-900';
         document.getElementById('card-informe-header').className = 'rounded-3xl p-6 mb-4 border bg-white/10 backdrop-blur-xl border-white/20';
@@ -1929,16 +2106,16 @@
       const esNocturna = guardiaActual === 'nocturna';
       const meds = getMedicacionGuardia();
       const tars = getTareasGuardia();
-      
+
       // Fecha
       const now = new Date();
       document.getElementById('fecha-informe').textContent = now.toLocaleDateString('es-AR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      
+
       // Info
       document.getElementById('valor-guardia-info').textContent = guardiaActual === 'diurna' ? 'Diurna (08:00 - 20:00)' : 'Nocturna (20:00 - 08:00)';
       document.getElementById('valor-enfermero').textContent = enfermero;
       document.getElementById('valor-auxiliar').textContent = auxiliar;
-      
+
       // Progreso
       const totalMed = meds.length;
       const totalTar = tars.length;
@@ -1947,10 +2124,10 @@
       const total = totalMed + totalTar;
       const completadas = completadasMed + completadasTar;
       const progreso = total > 0 ? Math.round((completadas / total) * 100) : 0;
-      
+
       document.getElementById('valor-progreso-informe').textContent = progreso + '%';
       document.getElementById('barra-progreso-informe').style.width = progreso + '%';
-      
+
       // Medicación
       document.getElementById('lista-med-informe').innerHTML = meds.map(med => {
         const completado = medicacionCompletada[med.id];
@@ -1968,7 +2145,7 @@
           </div>
         `;
       }).join('');
-      
+
       // Tareas
       document.getElementById('lista-tar-informe').innerHTML = tars.map(t => {
         const completado = tareasCompletadas[t.id];
@@ -1981,10 +2158,10 @@
           </div>
         `;
       }).join('');
-      
+
       // Rotaciones
       document.getElementById('titulo-rot-informe').textContent = `Rotaciones Realizadas: ${rotacionesRealizadas.length}`;
-      document.getElementById('lista-rot-informe').innerHTML = rotacionesRealizadas.length > 0 
+      document.getElementById('lista-rot-informe').innerHTML = rotacionesRealizadas.length > 0
         ? rotacionesRealizadas.map(r => `
             <div class="flex items-center justify-between p-2 rounded-xl ${esNocturna ? 'bg-white/5' : 'bg-slate-50'}">
               <span class="font-medium ${esNocturna ? 'text-white' : 'text-slate-800'}">${r.posicion}</span>
@@ -1992,7 +2169,7 @@
             </div>
           `).join('')
         : `<p class="${esNocturna ? 'text-slate-400' : 'text-slate-500'}">No se registraron rotaciones</p>`;
-      
+
       // Signos Vitales
       const sv = {
         pa: document.getElementById('sv-pa').value,
@@ -2002,7 +2179,7 @@
         fr: document.getElementById('sv-fr').value,
         gluc: document.getElementById('sv-gluc').value
       };
-      
+
       document.getElementById('lista-sv-informe').innerHTML = [
         { label: 'PA', value: sv.pa },
         { label: 'FC', value: sv.fc },
@@ -2029,17 +2206,17 @@
       } catch (e) {
         reportes = [];
       }
-      
+
       // Agregar nuevo reporte con ID único
       informe.id = Date.now();
       informe.fechaEnvio = new Date().toISOString();
       reportes.unshift(informe); // Agregar al principio
-      
+
       // Mantener solo los últimos 100 reportes
       if (reportes.length > 100) {
         reportes = reportes.slice(0, 100);
       }
-      
+
       // Guardar
       localStorage.setItem('recaldeHealthReportes', JSON.stringify(reportes));
       return true;
@@ -2051,7 +2228,7 @@
         if (guardados) {
           return JSON.parse(guardados);
         }
-      } catch (e) {}
+      } catch (e) { }
       return [];
     }
 
@@ -2060,12 +2237,44 @@
       reportes = reportes.filter(r => r.id !== id);
       localStorage.setItem('recaldeHealthReportes', JSON.stringify(reportes));
       renderizarReportesAdmin();
+      actualizarBadgeReportes();
+    }
+
+    function marcarComoLeido(id) {
+      let reportes = obtenerReportes();
+      reportes = reportes.map(r => {
+        if (r.id === id) {
+          r.leido = true;
+        }
+        return r;
+      });
+      localStorage.setItem('recaldeHealthReportes', JSON.stringify(reportes));
+      renderizarReportesAdmin();
+      actualizarBadgeReportes();
+    }
+
+    function contarReportesNoLeidos() {
+      const reportes = obtenerReportes();
+      return reportes.filter(r => r.leido === false).length;
+    }
+
+    function actualizarBadgeReportes() {
+      const badge = document.getElementById('badge-reportes-nuevos');
+      if (!badge) return;
+
+      const noLeidos = contarReportesNoLeidos();
+      if (noLeidos > 0) {
+        badge.textContent = noLeidos;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
     }
 
     function enviarInforme() {
       const btn = document.getElementById('btn-enviar-informe');
       const textoBtn = document.getElementById('texto-btn-enviar');
-      
+
       // Crear objeto de informe
       const informe = {
         fecha: new Date().toLocaleString('es-AR'),
@@ -2099,24 +2308,29 @@
           fr: document.getElementById('sv-fr').value,
           gluc: document.getElementById('sv-gluc').value
         },
+        mensajeImportante: document.getElementById('input-mensaje-importante').value.trim(),
         observaciones: document.getElementById('input-observaciones').value,
-        progreso: calcularProgresoDetallado()
+        progreso: calcularProgresoDetallado(),
+        leido: false // Marcar como no leído
       };
-      
-      // Guardar reporte
+
+      // Guardar reporte localmente
       const guardado = guardarReporte(informe);
-      
+
       if (guardado) {
+        // Enviar por email usando Web3Forms
+        enviarReportePorEmail(informe);
+
         // Mostrar éxito
         btn.classList.remove('bg-gradient-to-r', 'from-amber-400', 'to-orange-500', 'from-emerald-400', 'to-teal-400');
         btn.classList.add('bg-emerald-500');
-        textoBtn.textContent = '✓ ¡Informe Guardado y Enviado!';
-        
+        textoBtn.textContent = '✓ ¡Informe Guardado y Enviado por Email!';
+
         console.log('Informe guardado:', informe);
-        
+
         // Limpiar guardia después de enviar
         limpiarGuardia();
-        
+
         setTimeout(() => {
           const esNocturna = guardiaActual === 'nocturna';
           btn.classList.remove('bg-emerald-500');
@@ -2127,9 +2341,9 @@
             btn.classList.add('from-amber-400', 'to-orange-500');
           }
           textoBtn.textContent = 'Enviar Informe al Administrador';
-          
+
           // Preguntar si quiere volver al inicio
-          if (confirm('¡Informe enviado!\n\nEl reporte está disponible en el Panel de Administración.\n\n¿Querés volver a la pantalla de inicio?')) {
+          if (confirm('¡Informe enviado por email!\\n\\nEl reporte se envió a pmrecalde91@gmail.com y también está guardado localmente.\\n\\n¿Querés volver a la pantalla de inicio?')) {
             if (checkAlarmsInterval) clearInterval(checkAlarmsInterval);
             volverInicio();
           }
@@ -2139,12 +2353,111 @@
       }
     }
 
+    // Función para enviar reporte por email usando Web3Forms
+    async function enviarReportePorEmail(informe) {
+      try {
+        // Formatear el contenido del email
+        const sv = informe.signosVitales || {};
+        const progreso = informe.progreso || {};
+
+        let mensajeEmail = `
+📋 REPORTE DE GUARDIA - RECALDE HEALTH SYSTEM
+═══════════════════════════════════════════════
+
+📅 Fecha: ${informe.fecha}
+🏥 Guardia: ${informe.guardiaTexto || informe.guardia}
+👨‍⚕️ Enfermero/a: ${informe.enfermero}
+👤 Auxiliar: ${informe.auxiliar}
+🏠 Paciente: ${informe.paciente}
+
+📊 PROGRESO: ${progreso.porcentaje || 0}%
+   • Medicación: ${progreso.medicacion?.completadas || 0}/${progreso.medicacion?.total || 0}
+   • Tareas: ${progreso.tareas?.completadas || 0}/${progreso.tareas?.total || 0}
+   • Rotaciones: ${progreso.rotaciones || 0}
+
+💓 SIGNOS VITALES:
+   • PA: ${sv.pa || 'N/R'}
+   • FC: ${sv.fc || 'N/R'}
+   • T°: ${sv.temp || 'N/R'}
+   • SpO2: ${sv.spo2 || 'N/R'}
+   • FR: ${sv.fr || 'N/R'}
+   • Glucemia: ${sv.gluc || 'N/R'}
+`;
+
+        if (informe.mensajeImportante) {
+          mensajeEmail += `
+⚠️ MENSAJE IMPORTANTE:
+${informe.mensajeImportante}
+`;
+        }
+
+        if (informe.observaciones) {
+          mensajeEmail += `
+📝 OBSERVACIONES:
+${informe.observaciones}
+`;
+        }
+
+        // Detalle de medicación
+        if (informe.medicacionDetalle && informe.medicacionDetalle.length > 0) {
+          mensajeEmail += `
+💊 DETALLE MEDICACIÓN:
+`;
+          informe.medicacionDetalle.forEach(m => {
+            const estado = m.completado ? '✅' : '❌';
+            mensajeEmail += `   ${estado} ${m.hora} - ${m.medicamentos}${m.horaCompletado ? ' (a las ' + m.horaCompletado + ')' : ''}
+`;
+          });
+        }
+
+        // Detalle de tareas
+        if (informe.tareasDetalle && informe.tareasDetalle.length > 0) {
+          mensajeEmail += `
+📋 DETALLE TAREAS:
+`;
+          informe.tareasDetalle.forEach(t => {
+            const estado = t.completado ? '✅' : '❌';
+            mensajeEmail += `   ${estado} ${t.nombre} - ${t.horario}${t.horaCompletado ? ' (a las ' + t.horaCompletado + ')' : ''}
+`;
+          });
+        }
+
+        mensajeEmail += `
+═══════════════════════════════════════════════
+Enviado desde Recalde Health System
+`;
+
+        // Enviar usando Web3Forms
+        const formData = new FormData();
+        formData.append('access_key', 'e0d802b6-7d30-423c-83db-f43045c7d98d'); // Access key para pmrecalde91@gmail.com
+        formData.append('subject', `🏥 Reporte de Guardia ${informe.guardiaTexto || informe.guardia} - ${informe.enfermero}`);
+        formData.append('from_name', 'Recalde Health System');
+        formData.append('email', 'noreply@recaldehealth.com');
+        formData.append('message', mensajeEmail);
+
+        const response = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          console.log('Email enviado correctamente');
+        } else {
+          console.error('Error al enviar email:', result);
+        }
+      } catch (error) {
+        console.error('Error al enviar email:', error);
+        // No mostramos alerta para no interrumpir, el reporte ya se guardó localmente
+      }
+    }
+
     function calcularProgresoDetallado() {
       const meds = getMedicacionGuardia();
       const tars = getTareasGuardia();
       const completadasMed = Object.keys(medicacionCompletada).filter(k => meds.some(m => m.id == k)).length;
       const completadasTar = Object.keys(tareasCompletadas).filter(k => tars.some(t => t.id == k)).length;
-      
+
       return {
         medicacion: { completadas: completadasMed, total: meds.length },
         tareas: { completadas: completadasTar, total: tars.length },
@@ -2156,12 +2469,14 @@
     // ==================== INICIALIZACIÓN ====================
     document.getElementById('input-enfermero').addEventListener('input', validarFormulario);
     document.getElementById('input-auxiliar').addEventListener('input', validarFormulario);
-    
+
     actualizarHora();
     setInterval(actualizarHora, 1000);
 
     // Verificar si hay una sesión guardada
-    window.addEventListener('load', function() {
+    window.addEventListener('load', function () {
+      // Actualizar badge de reportes no leídos
+      actualizarBadgeReportes();
       const estadoGuardado = cargarEstado();
       if (estadoGuardado) {
         const tiempoTranscurrido = Math.round((Date.now() - estadoGuardado.timestamp) / 60000);
@@ -2170,7 +2485,7 @@
           `Auxiliar: ${estadoGuardado.auxiliar}\n` +
           `Última actividad: hace ${tiempoTranscurrido} minutos\n\n` +
           `¿Querés continuar con esa guardia?`;
-        
+
         if (confirm(mensaje)) {
           const signosVitales = restaurarEstado(estadoGuardado);
           validarFormulario();
@@ -2186,9 +2501,9 @@
     const installBanner = document.getElementById('install-banner');
 
     // Detectar si ya está instalada como PWA
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                         window.navigator.standalone === true;
-    
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true;
+
     if (isStandalone) {
       console.log('[PWA] App ejecutándose en modo standalone');
       installBanner.style.display = 'none';
@@ -2198,7 +2513,7 @@
       console.log('[PWA] beforeinstallprompt disparado');
       e.preventDefault();
       deferredPrompt = e;
-      
+
       // Mostrar banner si no está instalada y no se cerró antes
       if (!sessionStorage.getItem('installBannerClosed') && !isStandalone) {
         setTimeout(() => {
@@ -2217,13 +2532,13 @@
       if (!deferredPrompt) {
         // Si no hay prompt, mostrar instrucciones
         alert('Para instalar la app:\n\n' +
-              '📱 Android (Chrome):\n' +
-              'Menú ⋮ → "Instalar aplicación"\n\n' +
-              '📱 iPhone (Safari):\n' +
-              'Compartir → "Agregar a inicio"');
+          '📱 Android (Chrome):\n' +
+          'Menú ⋮ → "Instalar aplicación"\n\n' +
+          '📱 iPhone (Safari):\n' +
+          'Compartir → "Agregar a inicio"');
         return;
       }
-      
+
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then((choiceResult) => {
         console.log('[PWA] Usuario eligió:', choiceResult.outcome);
@@ -2243,7 +2558,7 @@
         navigator.serviceWorker.register('./sw.js')
           .then((registration) => {
             console.log('[SW] Registrado con scope:', registration.scope);
-            
+
             // Verificar actualizaciones
             registration.addEventListener('updatefound', () => {
               const newWorker = registration.installing;
@@ -2261,4 +2576,5 @@
     }
   </script>
 </body>
+
 </html>
