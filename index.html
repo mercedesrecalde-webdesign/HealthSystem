@@ -29,6 +29,8 @@
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%2314b8a6' rx='20' width='100' height='100'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white'>♥</text></svg>">
 
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase para sincronización de reportes -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -137,10 +139,40 @@
 
     .alarm-notification.medicacion {
       border-left: 6px solid #f43f5e;
+      background: linear-gradient(135deg, #fff 0%, #fff5f5 100%);
     }
 
     .alarm-notification.tarea {
       border-left: 6px solid #3b82f6;
+    }
+
+    .alarm-notification.higiene {
+      border-left: 6px solid #06b6d4;
+      background: linear-gradient(135deg, #fff 0%, #f0fdfa 100%);
+    }
+
+    .alarm-notification.rotacion {
+      border-left: 6px solid #8b5cf6;
+      background: linear-gradient(135deg, #fff 0%, #f5f3ff 100%);
+    }
+
+    .alarm-notification.alimentacion {
+      border-left: 6px solid #f59e0b;
+      background: linear-gradient(135deg, #fff 0%, #fffbeb 100%);
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+      }
+
+      50% {
+        opacity: 0.9;
+        transform: translateX(-50%) scale(1.02);
+      }
     }
 
     .alarm-notification h3 {
@@ -989,52 +1021,167 @@
     let audioContext = null;
     let checkAlarmsInterval = null;
 
+    // ==================== SUPABASE - SINCRONIZACIÓN DE REPORTES ====================
+    // Usa el mismo proyecto Supabase de RAINERO CULINARIA
+    // Solo necesitás ejecutar el script SQL para crear la tabla 'reportes_guardia'
+    const SUPABASE_URL = 'https://dukgjrhyhyxvdqzhthje.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_hdrC91CO7zGc3uoO2MsMVA_6K_CQmgd';
+
+    let supabaseClient = null;
+
+    function initSupabase() {
+      try {
+        if (typeof supabase !== 'undefined' && SUPABASE_URL && SUPABASE_ANON_KEY) {
+          supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          console.log('[Supabase] Conectado correctamente');
+          return true;
+        }
+      } catch (e) {
+        console.log('[Supabase] No disponible, usando solo localStorage:', e);
+      }
+      return false;
+    }
+
     // ==================== AUDIO / ALARMAS ====================
+    let audioUnlocked = false;
+
     function initAudio() {
       if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
       }
+      // Desbloquear para Android/iOS
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
       return audioContext;
     }
 
-    // Sonido para MEDICACIÓN (más urgente, tipo alarma médica)
+    // Desbloquear audio con primera interacción del usuario (necesario para Android)
+    function unlockAudio() {
+      if (audioUnlocked) return;
+      try {
+        const ctx = initAudio();
+        const buffer = ctx.createBuffer(1, 1, 22050);
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(ctx.destination);
+        source.start(0);
+        audioUnlocked = true;
+        console.log('[Audio] Desbloqueado correctamente');
+      } catch (e) {
+        console.log('[Audio] Error al desbloquear:', e);
+      }
+    }
+
+    // Agregar listener para desbloquear audio con cualquier interacción
+    document.addEventListener('touchstart', unlockAudio, { once: true });
+    document.addEventListener('click', unlockAudio, { once: true });
+
+    // Sonido para MEDICACIÓN (más urgente, tipo alarma médica - tono rojo/urgente)
     function playMedicacionSound() {
       try {
         const ctx = initAudio();
+        if (ctx.state === 'suspended') ctx.resume();
         const now = ctx.currentTime;
 
-        // Crear osciladores para sonido de alarma médica
-        for (let i = 0; i < 3; i++) {
+        // Crear osciladores para sonido de alarma médica urgente
+        for (let i = 0; i < 4; i++) {
           const osc1 = ctx.createOscillator();
           const osc2 = ctx.createOscillator();
           const gain = ctx.createGain();
 
-          osc1.type = 'sine';
+          osc1.type = 'square'; // Más penetrante
           osc2.type = 'sine';
           osc1.frequency.value = 880; // La agudo
-          osc2.frequency.value = 660; // Mi
+          osc2.frequency.value = 698; // Fa
 
-          gain.gain.setValueAtTime(0.3, now + i * 0.6);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.6 + 0.5);
+          gain.gain.setValueAtTime(0.35, now + i * 0.5);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.5 + 0.4);
 
           osc1.connect(gain);
           osc2.connect(gain);
           gain.connect(ctx.destination);
 
-          osc1.start(now + i * 0.6);
-          osc2.start(now + i * 0.6);
-          osc1.stop(now + i * 0.6 + 0.5);
-          osc2.stop(now + i * 0.6 + 0.5);
+          osc1.start(now + i * 0.5);
+          osc2.start(now + i * 0.5);
+          osc1.stop(now + i * 0.5 + 0.4);
+          osc2.stop(now + i * 0.5 + 0.4);
         }
+        console.log('[Audio] Reproduciendo sonido de MEDICACIÓN');
       } catch (e) {
-        console.log('Audio no disponible');
+        console.log('[Audio] Error en medicación:', e);
       }
     }
 
-    // Sonido para TAREAS (más suave, tipo recordatorio)
+    // Sonido para HIGIENE Y CONFORT (suave, reconfortante - tono azul/spa)
+    function playHigieneSound() {
+      try {
+        const ctx = initAudio();
+        if (ctx.state === 'suspended') ctx.resume();
+        const now = ctx.currentTime;
+
+        // Sonido tipo spa/relajante pero distintivo
+        for (let i = 0; i < 3; i++) {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc.type = 'triangle'; // Onda suave
+          // Notas ascendentes suaves: Sol -> La -> Si
+          osc.frequency.setValueAtTime(392, now + i * 0.6); // Sol
+          osc.frequency.linearRampToValueAtTime(440, now + i * 0.6 + 0.2); // La
+          osc.frequency.linearRampToValueAtTime(494, now + i * 0.6 + 0.4); // Si
+
+          gain.gain.setValueAtTime(0.2, now + i * 0.6);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.6 + 0.5);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(now + i * 0.6);
+          osc.stop(now + i * 0.6 + 0.55);
+        }
+        console.log('[Audio] Reproduciendo sonido de HIGIENE');
+      } catch (e) {
+        console.log('[Audio] Error en higiene:', e);
+      }
+    }
+
+    // Sonido para ROTACIÓN (distintivo, recordatorio importante - tono violeta)
+    function playRotacionSound() {
+      try {
+        const ctx = initAudio();
+        if (ctx.state === 'suspended') ctx.resume();
+        const now = ctx.currentTime;
+
+        // Sonido tipo "ding-dong" suave pero claro
+        const notas = [523, 392, 523]; // Do - Sol - Do
+        notas.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+
+          gain.gain.setValueAtTime(0.25, now + i * 0.35);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.35 + 0.3);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(now + i * 0.35);
+          osc.stop(now + i * 0.35 + 0.35);
+        });
+        console.log('[Audio] Reproduciendo sonido de ROTACIÓN');
+      } catch (e) {
+        console.log('[Audio] Error en rotación:', e);
+      }
+    }
+
+    // Sonido para TAREAS generales (campana suave)
     function playTareaSound() {
       try {
         const ctx = initAudio();
+        if (ctx.state === 'suspended') ctx.resume();
         const now = ctx.currentTime;
 
         // Sonido de campana suave
@@ -1056,8 +1203,9 @@
           osc.start(now + i * 0.4);
           osc.stop(now + i * 0.4 + 0.4);
         }
+        console.log('[Audio] Reproduciendo sonido de TAREA');
       } catch (e) {
-        console.log('Audio no disponible');
+        console.log('[Audio] Error en tarea:', e);
       }
     }
 
@@ -1066,29 +1214,105 @@
       guardarEstado();
     }
 
-    function showAlarmNotification(tipo, titulo, descripcion, id) {
+    function showAlarmNotification(tipo, titulo, descripcion, id, tipoTarea = null) {
       const notification = document.getElementById('alarm-notification');
       const titleEl = document.getElementById('alarm-title');
       const descEl = document.getElementById('alarm-description');
 
-      notification.className = 'alarm-notification ' + tipo;
-      titleEl.innerHTML = (tipo === 'medicacion' ? '💊' : '📋') + ' ' + titulo;
+      // Determinar el tipo de alarma basado en el tipo de tarea
+      let alarmClass = tipo;
+      let icono = '📋';
+      let soundFunction = playTareaSound;
+      let vibratePattern = [200, 100, 200];
+
+      if (tipo === 'medicacion') {
+        alarmClass = 'medicacion';
+        icono = '💊';
+        soundFunction = playMedicacionSound;
+        vibratePattern = [200, 100, 200, 100, 200, 100, 200]; // Más intenso
+      } else if (tipoTarea === 'higiene' || titulo.toLowerCase().includes('higiene') || titulo.toLowerCase().includes('baño')) {
+        alarmClass = 'higiene';
+        icono = '🛁';
+        soundFunction = playHigieneSound;
+        vibratePattern = [300, 150, 300]; // Suave
+      } else if (tipoTarea === 'rotacion' || titulo.toLowerCase().includes('rotaci')) {
+        alarmClass = 'rotacion';
+        icono = '🔄';
+        soundFunction = playRotacionSound;
+        vibratePattern = [250, 100, 250, 100, 250];
+      } else if (tipoTarea === 'alimentacion' || titulo.toLowerCase().includes('comida') || titulo.toLowerCase().includes('almuerzo') || titulo.toLowerCase().includes('cena') || titulo.toLowerCase().includes('desayuno')) {
+        alarmClass = 'alimentacion';
+        icono = '🍽️';
+        soundFunction = playTareaSound;
+        vibratePattern = [200, 100, 200];
+      }
+
+      notification.className = 'alarm-notification ' + alarmClass;
+      titleEl.innerHTML = icono + ' ' + titulo;
       descEl.textContent = descripcion;
 
-      alarmaActual = { tipo, id };
+      alarmaActual = { tipo: alarmClass, id };
       notification.classList.add('show');
 
       // Reproducir sonido
-      if (tipo === 'medicacion') {
-        playMedicacionSound();
-      } else {
-        playTareaSound();
-      }
+      soundFunction();
 
       // Vibrar si está disponible
       if (navigator.vibrate) {
-        navigator.vibrate(tipo === 'medicacion' ? [200, 100, 200, 100, 200] : [200, 100, 200]);
+        navigator.vibrate(vibratePattern);
       }
+
+      // Mostrar también una alerta visual persistente en el header si está en guardia
+      mostrarRecordatorioVisual(alarmClass, icono, titulo);
+    }
+
+    // Función para mostrar recordatorio visual persistente
+    let recordatorioTimeout = null;
+    function mostrarRecordatorioVisual(tipo, icono, titulo) {
+      // Crear o actualizar el recordatorio visual
+      let recordatorio = document.getElementById('recordatorio-visual');
+      if (!recordatorio) {
+        recordatorio = document.createElement('div');
+        recordatorio.id = 'recordatorio-visual';
+        recordatorio.style.cssText = `
+          position: fixed;
+          top: 70px;
+          left: 50%;
+          transform: translateX(-50%);
+          padding: 12px 20px;
+          border-radius: 16px;
+          font-weight: 600;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          z-index: 9998;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+          animation: pulse 2s infinite;
+          cursor: pointer;
+        `;
+        recordatorio.onclick = () => recordatorio.remove();
+        document.body.appendChild(recordatorio);
+      }
+
+      // Colores según tipo
+      const colores = {
+        medicacion: 'linear-gradient(135deg, #f43f5e, #e11d48)',
+        higiene: 'linear-gradient(135deg, #06b6d4, #0891b2)',
+        rotacion: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+        alimentacion: 'linear-gradient(135deg, #f59e0b, #d97706)',
+        tarea: 'linear-gradient(135deg, #3b82f6, #2563eb)'
+      };
+
+      recordatorio.style.background = colores[tipo] || colores.tarea;
+      recordatorio.style.color = 'white';
+      recordatorio.innerHTML = `${icono} <span>${titulo}</span> <span style="opacity:0.7">• Toca para cerrar</span>`;
+
+      // Auto-ocultar después de 30 segundos
+      if (recordatorioTimeout) clearTimeout(recordatorioTimeout);
+      recordatorioTimeout = setTimeout(() => {
+        if (recordatorio) recordatorio.remove();
+      }, 30000);
     }
 
     function dismissAlarm() {
@@ -1147,7 +1371,8 @@
         // Solo tareas con horario específico (no "Permanente", "Cada 2 horas", etc.)
         const horaMatch = tarea.horario.match(/^(\d{2}):(\d{2})/);
         if (horaMatch && tarea.horario.substring(0, 5) === currentTime) {
-          showAlarmNotification('tarea', tarea.nombre, tarea.detalle, alarmId);
+          // Pasar el tipo de tarea para usar el sonido correcto
+          showAlarmNotification('tarea', tarea.nombre, tarea.detalle, alarmId, tarea.tipo);
         }
       });
 
@@ -1157,11 +1382,13 @@
         if (!alarmasDisparadas[rotacionAlarmId]) {
           const ultimaRotacion = rotacionesRealizadas[rotacionesRealizadas.length - 1];
           if (!ultimaRotacion || !ultimaRotacion.hora.startsWith(currentHour)) {
-            showAlarmNotification('tarea', 'Rotación Postural', 'Es hora de rotar a Patricio según el esquema', rotacionAlarmId);
+            // Usar tipo rotacion para el sonido específico
+            showAlarmNotification('tarea', 'Rotación Postural', 'Es hora de rotar a Patricio según el esquema', rotacionAlarmId, 'rotacion');
           }
         }
       }
     }
+
 
     // ==================== PERSISTENCIA (LocalStorage) ====================
     function guardarEstado() {
@@ -1466,8 +1693,8 @@
       renderizarListaControles();
     }
 
-    function renderizarReportesAdmin() {
-      const reportes = obtenerReportes();
+    async function renderizarReportesAdmin() {
+      const reportes = await obtenerReportes();
       const lista = document.getElementById('lista-reportes');
       const sinReportes = document.getElementById('sin-reportes');
 
@@ -1816,8 +2043,31 @@
       actualizarProgreso();
     }
 
+    // Función auxiliar para ordenar horas según el tipo de guardia
+    function ordenarPorHoraGuardia(a, b) {
+      // Convertir hora "HH:MM" a número para comparar
+      const horaA = parseInt(a.hora.split(':')[0]);
+      const horaB = parseInt(b.hora.split(':')[0]);
+
+      // Para guardia nocturna (20:00 - 08:00), las horas de 20-23 van primero
+      // luego las horas de 00-08
+      if (guardiaActual === 'nocturna') {
+        // Si una hora es >= 20 y otra < 20, la >= 20 va primero
+        const aEsTarde = horaA >= 20;
+        const bEsTarde = horaB >= 20;
+
+        if (aEsTarde && !bEsTarde) return -1; // a va primero
+        if (!aEsTarde && bEsTarde) return 1;  // b va primero
+      }
+
+      // Si ambas están en el mismo "período", ordenar normalmente
+      return a.hora.localeCompare(b.hora);
+    }
+
     function getMedicacionGuardia() {
-      return medicacion.filter(m => m.guardia === guardiaActual).sort((a, b) => a.hora.localeCompare(b.hora));
+      return medicacion
+        .filter(m => m.guardia === guardiaActual)
+        .sort(ordenarPorHoraGuardia);
     }
 
     function getTareasGuardia() {
@@ -2194,35 +2444,112 @@
         </div>
       `).join('');
     }
+    // ==================== FUNCIONES DE REPORTES CON SINCRONIZACIÓN ====================
 
-    function guardarReporte(informe) {
-      // Obtener reportes existentes
-      let reportes = [];
+    async function guardarReporte(informe) {
+      // Agregar ID único y fecha
+      informe.id = Date.now();
+      informe.fechaEnvio = new Date().toISOString();
+
+      // 1. Guardar en localStorage como respaldo
+      let reportesLocal = [];
       try {
         const guardados = localStorage.getItem('recaldeHealthReportes');
         if (guardados) {
-          reportes = JSON.parse(guardados);
+          reportesLocal = JSON.parse(guardados);
         }
       } catch (e) {
-        reportes = [];
+        reportesLocal = [];
+      }
+      reportesLocal.unshift(informe);
+      if (reportesLocal.length > 100) {
+        reportesLocal = reportesLocal.slice(0, 100);
+      }
+      localStorage.setItem('recaldeHealthReportes', JSON.stringify(reportesLocal));
+
+      // 2. Guardar en Supabase si está disponible
+      if (supabaseClient) {
+        try {
+          const { data, error } = await supabaseClient
+            .from('reportes_guardia')
+            .insert([{
+              reporte_id: informe.id,
+              fecha: informe.fecha,
+              guardia: informe.guardia,
+              guardia_texto: informe.guardiaTexto,
+              enfermero: informe.enfermero,
+              auxiliar: informe.auxiliar,
+              paciente: informe.paciente,
+              signos_vitales: informe.signosVitales,
+              mensaje_importante: informe.mensajeImportante,
+              observaciones: informe.observaciones,
+              progreso: informe.progreso,
+              medicacion_detalle: informe.medicacionDetalle,
+              tareas_detalle: informe.tareasDetalle,
+              rotaciones_realizadas: informe.rotacionesRealizadas,
+              leido: false,
+              fecha_envio: informe.fechaEnvio,
+              datos_completos: informe // Guardar el objeto completo también
+            }]);
+
+          if (error) {
+            console.error('[Supabase] Error al guardar reporte:', error);
+          } else {
+            console.log('[Supabase] Reporte guardado en la nube');
+          }
+        } catch (e) {
+          console.error('[Supabase] Error:', e);
+        }
       }
 
-      // Agregar nuevo reporte con ID único
-      informe.id = Date.now();
-      informe.fechaEnvio = new Date().toISOString();
-      reportes.unshift(informe); // Agregar al principio
-
-      // Mantener solo los últimos 100 reportes
-      if (reportes.length > 100) {
-        reportes = reportes.slice(0, 100);
-      }
-
-      // Guardar
-      localStorage.setItem('recaldeHealthReportes', JSON.stringify(reportes));
       return true;
     }
 
-    function obtenerReportes() {
+    async function obtenerReportes() {
+      let reportes = [];
+
+      // 1. Intentar obtener de Supabase primero
+      if (supabaseClient) {
+        try {
+          const { data, error } = await supabaseClient
+            .from('reportes_guardia')
+            .select('*')
+            .order('fecha_envio', { ascending: false })
+            .limit(100);
+
+          if (!error && data && data.length > 0) {
+            console.log('[Supabase] Reportes obtenidos de la nube:', data.length);
+            // Convertir del formato de Supabase al formato de la app
+            reportes = data.map(r => ({
+              id: r.reporte_id,
+              fecha: r.fecha,
+              guardia: r.guardia,
+              guardiaTexto: r.guardia_texto,
+              enfermero: r.enfermero,
+              auxiliar: r.auxiliar,
+              paciente: r.paciente,
+              signosVitales: r.signos_vitales,
+              mensajeImportante: r.mensaje_importante,
+              observaciones: r.observaciones,
+              progreso: r.progreso,
+              medicacionDetalle: r.medicacion_detalle,
+              tareasDetalle: r.tareas_detalle,
+              rotacionesRealizadas: r.rotaciones_realizadas,
+              leido: r.leido,
+              fechaEnvio: r.fecha_envio,
+              supabaseId: r.id // Guardar el ID de Supabase para updates
+            }));
+
+            // Actualizar localStorage con los datos de la nube
+            localStorage.setItem('recaldeHealthReportes', JSON.stringify(reportes));
+            return reportes;
+          }
+        } catch (e) {
+          console.log('[Supabase] Error al obtener reportes, usando localStorage:', e);
+        }
+      }
+
+      // 2. Fallback a localStorage
       try {
         const guardados = localStorage.getItem('recaldeHealthReportes');
         if (guardados) {
@@ -2232,16 +2559,57 @@
       return [];
     }
 
-    function eliminarReporte(id) {
-      let reportes = obtenerReportes();
+    async function eliminarReporte(id) {
+      // 1. Eliminar de Supabase
+      if (supabaseClient) {
+        try {
+          await supabaseClient
+            .from('reportes_guardia')
+            .delete()
+            .eq('reporte_id', id);
+          console.log('[Supabase] Reporte eliminado de la nube');
+        } catch (e) {
+          console.error('[Supabase] Error al eliminar:', e);
+        }
+      }
+
+      // 2. Eliminar de localStorage
+      let reportes = [];
+      try {
+        const guardados = localStorage.getItem('recaldeHealthReportes');
+        if (guardados) {
+          reportes = JSON.parse(guardados);
+        }
+      } catch (e) { }
       reportes = reportes.filter(r => r.id !== id);
       localStorage.setItem('recaldeHealthReportes', JSON.stringify(reportes));
+
       renderizarReportesAdmin();
       actualizarBadgeReportes();
     }
 
-    function marcarComoLeido(id) {
-      let reportes = obtenerReportes();
+    async function marcarComoLeido(id) {
+      // 1. Actualizar en Supabase
+      if (supabaseClient) {
+        try {
+          await supabaseClient
+            .from('reportes_guardia')
+            .update({ leido: true })
+            .eq('reporte_id', id);
+          console.log('[Supabase] Reporte marcado como leído en la nube');
+        } catch (e) {
+          console.error('[Supabase] Error al marcar como leído:', e);
+        }
+      }
+
+      // 2. Actualizar en localStorage
+      let reportes = [];
+      try {
+        const guardados = localStorage.getItem('recaldeHealthReportes');
+        if (guardados) {
+          reportes = JSON.parse(guardados);
+        }
+      } catch (e) { }
       reportes = reportes.map(r => {
         if (r.id === id) {
           r.leido = true;
@@ -2249,20 +2617,21 @@
         return r;
       });
       localStorage.setItem('recaldeHealthReportes', JSON.stringify(reportes));
+
       renderizarReportesAdmin();
       actualizarBadgeReportes();
     }
 
-    function contarReportesNoLeidos() {
-      const reportes = obtenerReportes();
+    async function contarReportesNoLeidos() {
+      const reportes = await obtenerReportes();
       return reportes.filter(r => r.leido === false).length;
     }
 
-    function actualizarBadgeReportes() {
+    async function actualizarBadgeReportes() {
       const badge = document.getElementById('badge-reportes-nuevos');
       if (!badge) return;
 
-      const noLeidos = contarReportesNoLeidos();
+      const noLeidos = await contarReportesNoLeidos();
       if (noLeidos > 0) {
         badge.textContent = noLeidos;
         badge.classList.remove('hidden');
@@ -2270,6 +2639,7 @@
         badge.classList.add('hidden');
       }
     }
+
 
     function enviarInforme() {
       const btn = document.getElementById('btn-enviar-informe');
@@ -2475,6 +2845,9 @@ Enviado desde Recalde Health System
 
     // Verificar si hay una sesión guardada
     window.addEventListener('load', function () {
+      // Inicializar Supabase para sincronización de reportes
+      initSupabase();
+
       // Actualizar badge de reportes no leídos
       actualizarBadgeReportes();
       const estadoGuardado = cargarEstado();
