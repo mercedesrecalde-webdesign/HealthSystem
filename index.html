@@ -1804,10 +1804,15 @@
       }).join('');
     }
 
-    function verDetalleReporte(id) {
-      const reportes = obtenerReportes();
+    async function verDetalleReporte(id) {
+      const reportes = await obtenerReportes();
       const r = reportes.find(rep => rep.id === id);
       if (!r) return;
+
+      // Si el reporte no estaba leído, marcarlo como leído automáticamente
+      if (r.leido === false) {
+        await marcarComoLeido(id);
+      }
 
       let detalle = `REPORTE DE GUARDIA\n`;
       detalle += `═══════════════════════════════\n\n`;
@@ -1864,8 +1869,8 @@
       alert(detalle);
     }
 
-    function exportarReportesCSV() {
-      const reportes = obtenerReportes();
+    async function exportarReportesCSV() {
+      const reportes = await obtenerReportes();
       if (reportes.length === 0) {
         alert('No hay reportes para exportar');
         return;
