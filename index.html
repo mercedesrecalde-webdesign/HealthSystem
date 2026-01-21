@@ -747,50 +747,36 @@
         </div>
       </div>
 
-      <!-- Sección Medicación -->
+      <!-- Timeline Cronológico Unificado -->
       <div>
-        <button onclick="toggleSeccion('medicacion-guardia')" id="btn-seccion-medicacion"
-          class="section-btn w-full flex items-center justify-between p-4 rounded-2xl mb-3 bg-gradient-to-r from-rose-400 to-pink-500">
-          <div class="flex items-center gap-3">
-            <div class="p-2 bg-white/30 rounded-xl backdrop-blur-sm">
-              <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path
-                  d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
-              </svg>
-            </div>
-            <h2 class="text-xl font-bold text-white tracking-tight">Medicación</h2>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="p-2 bg-gradient-to-r from-amber-400 to-rose-400 rounded-xl">
+            <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 6v6l4 2" />
+            </svg>
           </div>
-          <svg id="chevron-medicacion" class="w-6 h-6 text-white/80" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor" stroke-width="2">
-            <path d="m18 15-6-6-6 6" />
-          </svg>
-        </button>
-        <div id="seccion-medicacion-guardia" class="space-y-3"></div>
+          <h2 id="titulo-timeline" class="text-xl font-bold text-slate-800">Actividades del Día</h2>
+        </div>
+        <div id="seccion-timeline-guardia" class="space-y-3"></div>
       </div>
 
-      <!-- Sección Tareas -->
-      <div>
-        <button onclick="toggleSeccion('tareas-guardia')" id="btn-seccion-tareas"
-          class="section-btn w-full flex items-center justify-between p-4 rounded-2xl mb-3 bg-gradient-to-r from-sky-400 to-blue-500">
-          <div class="flex items-center gap-3">
-            <div class="p-2 bg-white/30 rounded-xl backdrop-blur-sm">
-              <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
-              </svg>
-            </div>
-            <h2 class="text-xl font-bold text-white tracking-tight">Tareas de Cuidado</h2>
+      <!-- Sección Actividades Permanentes -->
+      <div class="mt-6">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="p-2 bg-gradient-to-r from-violet-400 to-purple-500 rounded-xl">
+            <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
           </div>
-          <svg id="chevron-tareas" class="w-6 h-6 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            stroke-width="2">
-            <path d="m18 15-6-6-6 6" />
-          </svg>
-        </button>
-        <div id="seccion-tareas-guardia" class="space-y-3"></div>
+          <h2 class="text-lg font-bold text-slate-800">Actividades Permanentes</h2>
+        </div>
+        <div id="seccion-permanentes-guardia" class="space-y-3"></div>
       </div>
 
       <!-- Sección Rotaciones -->
-      <div>
+      <div class="mt-6">
         <button onclick="toggleSeccion('rotaciones-guardia')" id="btn-seccion-rotaciones"
           class="section-btn w-full flex items-center justify-between p-4 rounded-2xl mb-3 bg-gradient-to-r from-violet-400 to-purple-500">
           <div class="flex items-center gap-3">
@@ -981,18 +967,28 @@
     ];
 
     let tareas = [
-      { id: 1, nombre: "CSV - Control Signos Vitales", horario: "Inicio guardia", detalle: "Pase de guardia en domicilio y revisión completa de Patricio", guardia: "ambas", tipo: "csv" },
-      { id: 12, nombre: "Control de Glucemia en Ayunas", horario: "05:15", detalle: "Realizar después del Omeprazol, antes de la colación. Registrar valor en observaciones", guardia: "nocturna", tipo: "csv" },
-      { id: 2, nombre: "Rotación Postural", horario: "Cada 2 horas", detalle: "Según esquema: Dorsal → Lateral Der 30° → Dorsal → Lateral Izq 30°. Noche: espaciar si duerme", guardia: "ambas", tipo: "rotacion" },
-      { id: 3, nombre: "Hidratación por Gastrostomía", horario: "Permanente", detalle: "Agua 2 lt total repartido entre ambas guardias", guardia: "ambas", tipo: "hidratacion" },
-      { id: 4, nombre: "Hidratación por Boca", horario: "Permanente", detalle: "Gasa humedecida en jugo (suspender si duerme)", guardia: "ambas", tipo: "hidratacion" },
-      { id: 5, nombre: "Colación (Post Omeprazol)", horario: "06:00", detalle: "Té con galletitas o vainillas x GTT", guardia: "nocturna", tipo: "alimentacion" },
-      { id: 6, nombre: "Desayuno", horario: "10:00", detalle: "Leche con cereales o yogurt", guardia: "diurna", tipo: "alimentacion" },
-      { id: 7, nombre: "Baño Completo", horario: "12:00-13:00", detalle: "Higiene y confort. Revisar: boca, lengua, conjuntiva (ojo seco), uñas manos y pies", guardia: "diurna", tipo: "higiene" },
-      { id: 8, nombre: "Almuerzo por Gastrostomía", horario: "Post baño", detalle: "Comida natural (mediodía) - 600 cc x GTT", guardia: "diurna", tipo: "alimentacion" },
-      { id: 9, nombre: "Traslado con Grúa al Sillón", horario: "Post baño", detalle: "Incluye cambio de postura. Máx 4hs en sillón, micro-rotaciones c/30-60 min", guardia: "diurna", tipo: "movilidad" },
-      { id: 10, nombre: "Merienda", horario: "17:00", detalle: "Licuado yogur + fruta (variable) - 250 cc x GTT", guardia: "diurna", tipo: "alimentacion" },
-      { id: 11, nombre: "Cena por Gastrostomía", horario: "Noche", detalle: "Nutrisón - 500 ml x GTT", guardia: "nocturna", tipo: "alimentacion" },
+      { id: 1, nombre: "CSV - Control Signos Vitales", hora: "08:30", horaDiurna: "08:30", horaNocturna: "20:30", horario: "Inicio guardia", detalle: "Pase de guardia en domicilio y revisión completa de Patricio", guardia: "ambas", tipo: "csv" },
+      { id: 12, nombre: "Control de Glucemia en Ayunas", hora: "05:15", horario: "05:15", detalle: "Realizar después del Omeprazol, antes de la colación. Registrar valor en observaciones", guardia: "nocturna", tipo: "csv" },
+      // Rotaciones posturales cada 2 horas - Diurna
+      { id: 101, nombre: "🔄 Rotación Postural", hora: "10:00", horario: "10:00", detalle: "Verificar: Sacro, Talones, Caderas, Omóplatos, TQT", guardia: "diurna", tipo: "rotacion" },
+      { id: 102, nombre: "🔄 Rotación Postural", hora: "12:00", horario: "12:00", detalle: "Verificar: Sacro, Talones, Caderas, Omóplatos, TQT", guardia: "diurna", tipo: "rotacion" },
+      { id: 103, nombre: "🔄 Rotación Postural", hora: "14:00", horario: "14:00", detalle: "Verificar: Sacro, Talones, Caderas, Omóplatos, TQT", guardia: "diurna", tipo: "rotacion" },
+      { id: 104, nombre: "🔄 Rotación Postural", hora: "16:00", horario: "16:00", detalle: "Verificar: Sacro, Talones, Caderas, Omóplatos, TQT", guardia: "diurna", tipo: "rotacion" },
+      { id: 105, nombre: "🔄 Rotación Postural", hora: "18:00", horario: "18:00", detalle: "Verificar: Sacro, Talones, Caderas, Omóplatos, TQT", guardia: "diurna", tipo: "rotacion" },
+      // Rotaciones posturales - Nocturna (solo hasta que duerme ~23:00)
+      { id: 106, nombre: "🔄 Rotación Postural", hora: "20:00", horario: "20:00", detalle: "Verificar: Sacro, Talones, Caderas, Omóplatos, TQT", guardia: "nocturna", tipo: "rotacion" },
+      { id: 107, nombre: "🔄 Rotación Postural", hora: "22:00", horario: "22:00", detalle: "Verificar: Sacro, Talones, Caderas, Omóplatos, TQT", guardia: "nocturna", tipo: "rotacion" },
+      // Hidratación (permanentes - suspender por boca si duerme)
+      { id: 3, nombre: "Hidratación por Gastrostomía", hora: null, horario: "Permanente", detalle: "Agua 2 lt total repartido entre ambas guardias", guardia: "ambas", tipo: "hidratacion", noTimeline: true },
+      { id: 4, nombre: "Hidratación por Boca", hora: null, horario: "Permanente", detalle: "Gasa humedecida en jugo (suspender si duerme)", guardia: "ambas", tipo: "hidratacion", noTimeline: true },
+      // Alimentación y otras tareas
+      { id: 5, nombre: "Colación (Post Omeprazol)", hora: "06:00", horario: "06:00", detalle: "Té con galletitas o vainillas x GTT", guardia: "nocturna", tipo: "alimentacion" },
+      { id: 6, nombre: "Desayuno", hora: "10:00", horario: "10:00", detalle: "Leche con cereales o yogurt", guardia: "diurna", tipo: "alimentacion" },
+      { id: 7, nombre: "Baño Completo", hora: "12:30", horario: "12:00-14:00", detalle: "Higiene y confort. Revisar: boca, lengua, conjuntiva (ojo seco), uñas manos y pies", guardia: "diurna", tipo: "higiene", esFlexible: true },
+      { id: 8, nombre: "Almuerzo por Gastrostomía", hora: "13:30", horario: "Post baño", detalle: "Comida natural (mediodía) - 600 cc x GTT", guardia: "diurna", tipo: "alimentacion", esFlexible: true },
+      { id: 9, nombre: "Traslado con Grúa al Sillón", hora: "14:00", horario: "Post baño", detalle: "Incluye cambio de postura. Máx 4hs en sillón, micro-rotaciones c/30-60 min", guardia: "diurna", tipo: "movilidad", esFlexible: true },
+      { id: 10, nombre: "Merienda", hora: "17:00", horario: "17:00", detalle: "Licuado yogur + fruta (variable) - 250 cc x GTT", guardia: "diurna", tipo: "alimentacion" },
+      { id: 11, nombre: "Cena - Alimentación Enteral", hora: "23:00", horario: "23:00", detalle: "Nutrisón - 500 ml x GTT", guardia: "nocturna", tipo: "alimentacion" },
     ];
 
     let controlesRotacion = [
@@ -1056,26 +1052,79 @@
       return audioContext;
     }
 
-    // Desbloquear audio con primera interacción del usuario (necesario para Android)
+    // Desbloquear audio con primera interacción del usuario (necesario para Android/iOS)
     function unlockAudio() {
       if (audioUnlocked) return;
       try {
         const ctx = initAudio();
+        // Crear y reproducir silencio para desbloquear
         const buffer = ctx.createBuffer(1, 1, 22050);
         const source = ctx.createBufferSource();
         source.buffer = buffer;
         source.connect(ctx.destination);
         source.start(0);
-        audioUnlocked = true;
+
+        // Forzar resume del contexto
+        if (ctx.state === 'suspended') {
+          ctx.resume().then(() => {
+            audioUnlocked = true;
+            console.log('[Audio] Desbloqueado por resume()');
+          });
+        } else {
+          audioUnlocked = true;
+        }
         console.log('[Audio] Desbloqueado correctamente');
       } catch (e) {
         console.log('[Audio] Error al desbloquear:', e);
       }
     }
 
-    // Agregar listener para desbloquear audio con cualquier interacción
-    document.addEventListener('touchstart', unlockAudio, { once: true });
-    document.addEventListener('click', unlockAudio, { once: true });
+    // Vibración mejorada para móviles (funciona incluso con audio silenciado)
+    function vibrarMovil(patron) {
+      if (navigator.vibrate) {
+        try {
+          navigator.vibrate(patron);
+          console.log('[Vibración] Ejecutada:', patron);
+          return true;
+        } catch (e) {
+          console.log('[Vibración] Error:', e);
+        }
+      }
+      return false;
+    }
+
+    // Función para reintentar audio si falla
+    function reproducirConReintentos(funcionSonido, intentos = 3) {
+      for (let i = 0; i < intentos; i++) {
+        try {
+          const ctx = initAudio();
+          if (ctx.state === 'suspended') {
+            ctx.resume();
+          }
+          funcionSonido();
+          return true;
+        } catch (e) {
+          console.log(`[Audio] Intento ${i + 1} fallido:`, e);
+        }
+      }
+      // Si todo falla, al menos vibrar
+      vibrarMovil([500, 200, 500, 200, 500]);
+      return false;
+    }
+
+    // Solicitar permisos de notificación (útil para PWA)
+    function solicitarPermisoNotificaciones() {
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().then(permission => {
+          console.log('[Notificaciones] Permiso:', permission);
+        });
+      }
+    }
+
+    // Agregar listeners más agresivos para desbloquear audio
+    ['touchstart', 'touchend', 'click', 'keydown'].forEach(event => {
+      document.addEventListener(event, unlockAudio, { once: true, passive: true });
+    });
 
     // Sonido para MEDICACIÓN (más urgente, tipo alarma médica - tono rojo/urgente)
     function playMedicacionSound() {
@@ -1254,13 +1303,19 @@
       alarmaActual = { tipo: alarmClass, id };
       notification.classList.add('show');
 
-      // Reproducir sonido
-      soundFunction();
-
-      // Vibrar si está disponible
-      if (navigator.vibrate) {
-        navigator.vibrate(vibratePattern);
+      // Reproducir sonido (con reintentos y vibración de respaldo)
+      try {
+        const ctx = initAudio();
+        if (ctx.state === 'suspended') {
+          ctx.resume();
+        }
+        soundFunction();
+      } catch (e) {
+        console.log('[Audio] Error, usando vibración de respaldo:', e);
       }
+
+      // Vibrar siempre (más fiable en móviles)
+      vibrarMovil(vibratePattern);
 
       // Mostrar también una alerta visual persistente en el header si está en guardia
       mostrarRecordatorioVisual(alarmClass, icono, titulo);
@@ -1990,6 +2045,9 @@
         ['label-pa', 'label-fc', 'label-temp', 'label-spo2', 'label-fr', 'label-gluc'].forEach(id => {
           document.getElementById(id).className = 'text-xs font-semibold block text-center mb-1 text-slate-400';
         });
+        // Estilos para timeline
+        const tituloTimeline = document.getElementById('titulo-timeline');
+        if (tituloTimeline) tituloTimeline.className = 'text-xl font-bold text-white';
       } else {
         pantallaGuardia.className = 'min-h-screen bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-50';
         document.getElementById('header-guardia').className = 'sticky top-0 z-50 p-4 bg-white/90 backdrop-blur-xl border-b border-slate-200/50 shadow-sm';
@@ -2042,30 +2100,25 @@
     }
 
     function renderizarGuardia() {
-      renderizarMedicacionGuardia();
-      renderizarTareasGuardia();
-      renderizarRotacionesGuardia();
+      renderizarTimelineUnificado();
+      renderizarSeccionPermanentes();
       actualizarProgreso();
     }
 
     // Función auxiliar para ordenar horas según el tipo de guardia
     function ordenarPorHoraGuardia(a, b) {
-      // Convertir hora "HH:MM" a número para comparar
-      const horaA = parseInt(a.hora.split(':')[0]);
-      const horaB = parseInt(b.hora.split(':')[0]);
+      const horaA = a.hora ? parseInt(a.hora.split(':')[0]) : 99;
+      const horaB = b.hora ? parseInt(b.hora.split(':')[0]) : 99;
 
       // Para guardia nocturna (20:00 - 08:00), las horas de 20-23 van primero
-      // luego las horas de 00-08
       if (guardiaActual === 'nocturna') {
-        // Si una hora es >= 20 y otra < 20, la >= 20 va primero
         const aEsTarde = horaA >= 20;
         const bEsTarde = horaB >= 20;
 
-        if (aEsTarde && !bEsTarde) return -1; // a va primero
-        if (!aEsTarde && bEsTarde) return 1;  // b va primero
+        if (aEsTarde && !bEsTarde) return -1;
+        if (!aEsTarde && bEsTarde) return 1;
       }
 
-      // Si ambas están en el mismo "período", ordenar normalmente
       return a.hora.localeCompare(b.hora);
     }
 
@@ -2076,51 +2129,202 @@
     }
 
     function getTareasGuardia() {
-      return tareas.filter(t => t.guardia === guardiaActual || t.guardia === 'ambas');
+      return tareas.filter(t => (t.guardia === guardiaActual || t.guardia === 'ambas') && !t.noTimeline);
     }
 
-    function renderizarMedicacionGuardia() {
-      const esNocturna = guardiaActual === 'nocturna';
-      const lista = document.getElementById('seccion-medicacion-guardia');
-      const meds = getMedicacionGuardia();
+    function getTareasParaTimeline() {
+      return tareas
+        .filter(t => {
+          if (t.noTimeline) return false;
+          if (t.guardia === guardiaActual) return true;
+          if (t.guardia === 'ambas') return true;
+          return false;
+        })
+        .map(t => {
+          // Para tareas con hora diferente según guardia
+          let hora = t.hora;
+          if (t.horaDiurna && guardiaActual === 'diurna') hora = t.horaDiurna;
+          if (t.horaNocturna && guardiaActual === 'nocturna') hora = t.horaNocturna;
+          return { ...t, hora };
+        })
+        .filter(t => t.hora) // Solo las que tienen hora
+        .sort(ordenarPorHoraGuardia);
+    }
 
-      lista.innerHTML = meds.map(med => {
-        const completado = medicacionCompletada[med.id];
+    function getActividadesUnificadas() {
+      const meds = getMedicacionGuardia().map(m => ({
+        ...m,
+        tipoActividad: 'medicacion',
+        actividadId: 'med-' + m.id
+      }));
+
+      const tars = getTareasParaTimeline().map(t => ({
+        ...t,
+        tipoActividad: 'tarea',
+        actividadId: 'tar-' + t.id
+      }));
+
+      // Combinar y ordenar
+      return [...meds, ...tars].sort(ordenarPorHoraGuardia);
+    }
+
+    function renderizarTimelineUnificado() {
+      const esNocturna = guardiaActual === 'nocturna';
+      const container = document.getElementById('seccion-timeline-guardia');
+      if (!container) return;
+
+      const actividades = getActividadesUnificadas();
+
+      // Agrupar por hora
+      const gruposHorarios = {};
+      actividades.forEach(act => {
+        if (!gruposHorarios[act.hora]) {
+          gruposHorarios[act.hora] = [];
+        }
+        gruposHorarios[act.hora].push(act);
+      });
+
+      const horasOrdenadas = Object.keys(gruposHorarios).sort((a, b) => {
+        const horaA = parseInt(a.split(':')[0]);
+        const horaB = parseInt(b.split(':')[0]);
+        if (guardiaActual === 'nocturna') {
+          const aEsTarde = horaA >= 20;
+          const bEsTarde = horaB >= 20;
+          if (aEsTarde && !bEsTarde) return -1;
+          if (!aEsTarde && bEsTarde) return 1;
+        }
+        return a.localeCompare(b);
+      });
+
+      container.innerHTML = horasOrdenadas.map(hora => {
+        const items = gruposHorarios[hora];
+
         return `
-          <div class="${esNocturna ? 'bg-white/10 backdrop-blur-xl border-white/20' : 'bg-white shadow-lg border-slate-100'} rounded-2xl p-4 border">
-            <div class="flex items-start justify-between">
-              <div class="flex-1">
-                <div class="flex items-center gap-3 mb-2">
-                  <span class="text-2xl font-black ${esNocturna ? 'text-emerald-400' : 'text-amber-500'}">${med.hora}</span>
-                  ${completado ? `<span class="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg font-semibold">✓ ${completado}</span>` : ''}
-                </div>
-                <div class="space-y-1">
-                  ${med.medicamentos.map(m => `
-                    <div class="flex items-center gap-2">
-                      <div class="w-2 h-2 rounded-full ${esNocturna ? 'bg-emerald-400' : 'bg-amber-400'}"></div>
-                      <span class="font-semibold ${esNocturna ? 'text-white' : 'text-slate-800'}">${m.nombre}</span>
-                      <span class="${esNocturna ? 'text-slate-400' : 'text-slate-500'}">${m.dosis}</span>
-                      ${m.cantidad ? `<span class="${esNocturna ? 'text-slate-500' : 'text-slate-400'}">(${m.cantidad})</span>` : ''}
-                    </div>
-                  `).join('')}
-                  ${med.medicamentos.some(m => m.observaciones) ? `
-                    <p class="text-xs mt-2 px-2 py-1 rounded-lg ${esNocturna ? 'bg-violet-500/20 text-violet-300' : 'bg-violet-50 text-violet-600'}">
-                      ${med.medicamentos.filter(m => m.observaciones).map(m => m.observaciones).join(' | ')}
-                    </p>
-                  ` : ''}
-                </div>
+          <div class="mb-4">
+            <!-- Bloque horario -->
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-16 h-10 rounded-xl flex items-center justify-center font-black text-lg ${esNocturna ? 'bg-emerald-500/30 text-emerald-300' : 'bg-amber-100 text-amber-700'}">
+                ${hora}
               </div>
-              <button onclick="toggleMedicacion(${med.id})" class="check-btn w-12 h-12 rounded-2xl flex items-center justify-center ${completado
-            ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-lg'
-            : 'bg-white border-2 border-dashed border-slate-300 text-slate-400 hover:border-slate-400'
-          }">
-                ${completado ? '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
-              </button>
+              <div class="flex-1 h-0.5 ${esNocturna ? 'bg-white/10' : 'bg-slate-200'}"></div>
+            </div>
+
+            <!-- Items de este horario -->
+            <div class="space-y-2 ml-2 pl-4 border-l-2 ${esNocturna ? 'border-white/10' : 'border-slate-200'}">
+              ${items.map(item => {
+          if (item.tipoActividad === 'medicacion') {
+            return renderizarItemMedicacion(item, esNocturna);
+          } else {
+            return renderizarItemTarea(item, esNocturna);
+          }
+        }).join('')}
             </div>
           </div>
         `;
       }).join('');
     }
+
+    function renderizarItemMedicacion(med, esNocturna) {
+      const completado = medicacionCompletada[med.id];
+      return `
+        <div class="rounded-2xl p-4 border-l-4 border-rose-400 ${esNocturna ? 'bg-rose-500/10 border-white/20' : 'bg-white shadow-lg'}">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-lg">💊</span>
+                <span class="font-bold ${esNocturna ? 'text-rose-300' : 'text-rose-600'}">Medicación</span>
+                ${completado ? `<span class="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-lg font-semibold">✓ ${completado}</span>` : ''}
+              </div>
+              <div class="space-y-1">
+                ${med.medicamentos.map(m => `
+                  <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-rose-400"></div>
+                    <span class="font-semibold ${esNocturna ? 'text-white' : 'text-slate-800'}">${m.nombre}</span>
+                    <span class="${esNocturna ? 'text-slate-400' : 'text-slate-500'}">${m.dosis}</span>
+                    ${m.cantidad ? `<span class="${esNocturna ? 'text-slate-500' : 'text-slate-400'}">(${m.cantidad})</span>` : ''}
+                  </div>
+                `).join('')}
+                ${med.medicamentos.some(m => m.observaciones) ? `
+                  <p class="text-xs mt-2 px-2 py-1 rounded-lg ${esNocturna ? 'bg-rose-500/20 text-rose-200' : 'bg-rose-50 text-rose-600'}">
+                    ${med.medicamentos.filter(m => m.observaciones).map(m => m.observaciones).join(' | ')}
+                  </p>
+                ` : ''}
+              </div>
+            </div>
+            <button onclick="toggleMedicacion(${med.id})" class="check-btn w-12 h-12 rounded-2xl flex items-center justify-center ${completado
+          ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-lg'
+          : 'bg-white border-2 border-dashed border-rose-300 text-rose-400 hover:border-rose-400'
+        }">
+              ${completado ? '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderizarItemTarea(t, esNocturna) {
+      const completado = tareasCompletadas[t.id];
+
+      // Iconos según tipo de tarea
+      const iconos = {
+        csv: '📋',
+        alimentacion: '🍽️',
+        higiene: '🛁',
+        movilidad: '🏃',
+        hidratacion: '💧',
+        rotacion: '🔄'
+      };
+      const icono = iconos[t.tipo] || '📋';
+
+      return `
+        <div class="rounded-2xl p-4 border-l-4 border-sky-400 ${esNocturna ? 'bg-sky-500/10 border-white/20' : 'bg-white shadow-lg'}">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-lg">${icono}</span>
+                <span class="font-bold ${esNocturna ? 'text-sky-300' : 'text-sky-700'}">${t.nombre}</span>
+                ${completado ? `<span class="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-lg font-semibold">✓ ${completado}</span>` : ''}
+              </div>
+              ${t.esFlexible ? `<span class="text-xs px-2 py-0.5 rounded-lg ${esNocturna ? 'bg-amber-500/30 text-amber-200' : 'bg-amber-100 text-amber-700'}">⏰ ${t.horario}</span>` : ''}
+              <p class="text-sm mt-1 ${esNocturna ? 'text-slate-400' : 'text-slate-500'}">${t.detalle}</p>
+            </div>
+            <button onclick="toggleTarea(${t.id})" class="check-btn w-12 h-12 rounded-2xl flex items-center justify-center ${completado
+          ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-lg'
+          : 'bg-white border-2 border-dashed border-sky-300 text-sky-400 hover:border-sky-400'
+        }">
+              ${completado ? '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderizarSeccionPermanentes() {
+      const esNocturna = guardiaActual === 'nocturna';
+      const container = document.getElementById('seccion-permanentes-guardia');
+      if (!container) return;
+
+      const tareasPermanentes = tareas.filter(t =>
+        t.noTimeline && (t.guardia === guardiaActual || t.guardia === 'ambas')
+      );
+
+      container.innerHTML = tareasPermanentes.map(t => {
+        const iconos = { hidratacion: '💧', rotacion: '🔄' };
+        const icono = iconos[t.tipo] || '📋';
+
+        return `
+          <div class="rounded-2xl p-4 border ${esNocturna ? 'bg-white/10 border-white/20' : 'bg-white shadow-lg border-slate-100'}">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-xl">${icono}</span>
+              <span class="font-bold ${esNocturna ? 'text-white' : 'text-slate-800'}">${t.nombre}</span>
+              <span class="text-xs px-2 py-0.5 rounded-lg ${esNocturna ? 'bg-violet-500/30 text-violet-200' : 'bg-violet-100 text-violet-700'}">${t.horario}</span>
+            </div>
+            <p class="text-sm ${esNocturna ? 'text-slate-400' : 'text-slate-500'}">${t.detalle}</p>
+          </div>
+        `;
+      }).join('');
+    }
+
 
     function renderizarTareasGuardia() {
       const esNocturna = guardiaActual === 'nocturna';
@@ -2933,6 +3137,9 @@ Enviado desde Recalde Health System
     // Registrar Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
+        // Solicitar permisos de notificación para móviles
+        solicitarPermisoNotificaciones();
+
         navigator.serviceWorker.register('./sw.js')
           .then((registration) => {
             console.log('[SW] Registrado con scope:', registration.scope);
