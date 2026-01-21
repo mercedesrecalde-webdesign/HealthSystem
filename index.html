@@ -1446,7 +1446,11 @@
 
 
     // ==================== PERSISTENCIA (LocalStorage) ====================
-    function guardarEstado() {
+    // Variable para controlar sincronización
+    let sincronizandoConNube = false;
+    let intervalSincronizacion = null;
+
+    async function guardarEstado() {
       if (!guardiaActual) return;
 
       const estado = {
@@ -1471,8 +1475,86 @@
         timestamp: Date.now()
       };
 
+      // 1. Guardar en localStorage como respaldo
       localStorage.setItem('recaldeHealthGuardia', JSON.stringify(estado));
+
+      // 2. Guardar en Supabase para sincronización entre dispositivos
+      if (supabaseClient && !sincronizandoConNube) {
+        sincronizandoConNube = true;
+        try {
+          const fechaHoy = new Date().toISOString().split('T')[0];
+
+          // Usar upsert para insertar o actualizar
+          const { error } = await supabaseClient
+            .from('estado_guardia')
+            .upsert({
+              fecha: fechaHoy,
+              guardia_tipo: guardiaActual,
+              enfermero: enfermero,
+              auxiliar: auxiliar,
+              medicacion_completada: medicacionCompletada,
+              tareas_completadas: tareasCompletadas,
+              rotaciones_realizadas: rotacionesRealizadas,
+              signos_vitales: estado.signosVitales,
+              alarmas_activas: alarmasActivas,
+              alarmas_pospuestas: alarmasPospuestas,
+              alarmas_disparadas: alarmasDisparadas,
+              ultima_actualizacion: new Date().toISOString()
+            }, {
+              onConflict: 'fecha,guardia_tipo'
+            });
+
+          if (error) {
+            console.error('[Sync] Error al guardar en nube:', error);
+          } else {
+            console.log('[Sync] Estado sincronizado con la nube');
+          }
+        } catch (e) {
+          console.error('[Sync] Error:', e);
+        }
+        sincronizandoConNube = false;
+      }
+
       mostrarIndicadorGuardado();
+    }
+
+    async function cargarEstadoDesdeNube() {
+      if (!supabaseClient) return null;
+
+      try {
+        const fechaHoy = new Date().toISOString().split('T')[0];
+        const { data, error } = await supabaseClient
+          .from('estado_guardia')
+          .select('*')
+          .eq('fecha', fechaHoy)
+          .order('ultima_actualizacion', { ascending: false })
+          .limit(1);
+
+        if (error || !data || data.length === 0) {
+          return null;
+        }
+
+        const estadoNube = data[0];
+        console.log('[Sync] Estado cargado desde la nube');
+
+        return {
+          guardiaActual: estadoNube.guardia_tipo,
+          enfermero: estadoNube.enfermero,
+          auxiliar: estadoNube.auxiliar,
+          medicacionCompletada: estadoNube.medicacion_completada || {},
+          tareasCompletadas: estadoNube.tareas_completadas || {},
+          rotacionesRealizadas: estadoNube.rotaciones_realizadas || [],
+          signosVitales: estadoNube.signos_vitales || {},
+          alarmasActivas: estadoNube.alarmas_activas !== false,
+          alarmasPospuestas: estadoNube.alarmas_pospuestas || {},
+          alarmasDisparadas: estadoNube.alarmas_disparadas || {},
+          fechaGuardia: new Date().toDateString(),
+          timestamp: new Date(estadoNube.ultima_actualizacion).getTime()
+        };
+      } catch (e) {
+        console.error('[Sync] Error cargando desde nube:', e);
+        return null;
+      }
     }
 
     function cargarEstado() {
@@ -1484,7 +1566,6 @@
 
         // Verificar que sea del mismo día
         if (estado.fechaGuardia !== new Date().toDateString()) {
-          // Es de otro día, limpiar
           localStorage.removeItem('recaldeHealthGuardia');
           return null;
         }
@@ -1499,6 +1580,92 @@
         return estado;
       } catch (e) {
         return null;
+      }
+    }
+
+    // Sincronizar periódicamente con la nube (cada 10 segundos)
+    async function sincronizarConNube() {
+      if (!supabaseClient || !guardiaActual || sincronizandoConNube) return;
+
+      try {
+        const estadoNube = await cargarEstadoDesdeNube();
+        if (!estadoNube || estadoNube.guardiaActual !== guardiaActual) return;
+
+        // Mezclar los datos: combinar las tareas completadas de ambas fuentes
+        let huboCambios = false;
+
+        // Mezclar medicación completada
+        for (const [id, hora] of Object.entries(estadoNube.medicacionCompletada || {})) {
+          if (!medicacionCompletada[id]) {
+            medicacionCompletada[id] = hora;
+            huboCambios = true;
+          }
+        }
+
+        // Mezclar tareas completadas
+        for (const [id, hora] of Object.entries(estadoNube.tareasCompletadas || {})) {
+          if (!tareasCompletadas[id]) {
+            tareasCompletadas[id] = hora;
+            huboCambios = true;
+          }
+        }
+
+        // Mezclar rotaciones (agregar las que no tengamos)
+        const rotacionesIds = new Set(rotacionesRealizadas.map(r => r.id));
+        for (const rot of (estadoNube.rotacionesRealizadas || [])) {
+          if (!rotacionesIds.has(rot.id)) {
+            rotacionesRealizadas.push(rot);
+            huboCambios = true;
+          }
+        }
+
+        // Mezclar signos vitales (tomar el que tenga valor)
+        const svNube = estadoNube.signosVitales || {};
+        ['sv-pa', 'sv-fc', 'sv-temp', 'sv-spo2', 'sv-fr', 'sv-gluc'].forEach(id => {
+          const campo = id.replace('sv-', '');
+          const inputEl = document.getElementById(id);
+          if (inputEl && !inputEl.value && svNube[campo]) {
+            inputEl.value = svNube[campo];
+            huboCambios = true;
+          }
+        });
+
+        if (huboCambios) {
+          console.log('[Sync] Datos actualizados desde otro dispositivo');
+          renderizarGuardia();
+          // Guardar los datos mezclados
+          localStorage.setItem('recaldeHealthGuardia', JSON.stringify({
+            guardiaActual,
+            enfermero,
+            auxiliar,
+            medicacionCompletada,
+            tareasCompletadas,
+            rotacionesRealizadas,
+            signosVitales: svNube,
+            alarmasActivas,
+            alarmasPospuestas,
+            alarmasDisparadas,
+            fechaGuardia: new Date().toDateString(),
+            timestamp: Date.now()
+          }));
+        }
+      } catch (e) {
+        console.error('[Sync] Error en sincronización:', e);
+      }
+    }
+
+    function iniciarSincronizacion() {
+      if (intervalSincronizacion) clearInterval(intervalSincronizacion);
+      // Sincronizar cada 10 segundos
+      intervalSincronizacion = setInterval(sincronizarConNube, 10000);
+      // Sincronizar inmediatamente al inicio
+      sincronizarConNube();
+    }
+
+    function detenerSincronizacion() {
+      if (intervalSincronizacion) {
+        clearInterval(intervalSincronizacion);
+        intervalSincronizacion = null;
       }
     }
 
@@ -1522,19 +1689,22 @@
 
     function mostrarIndicadorGuardado() {
       const indicator = document.getElementById('save-indicator');
-      indicator.classList.add('show');
-      setTimeout(() => {
-        indicator.classList.remove('show');
-      }, 1500);
+      if (indicator) {
+        indicator.classList.add('show');
+        setTimeout(() => {
+          indicator.classList.remove('show');
+        }, 1500);
+      }
     }
 
-    function limpiarGuardia() {
+    async function limpiarGuardia() {
       localStorage.removeItem('recaldeHealthGuardia');
       medicacionCompletada = {};
       tareasCompletadas = {};
       rotacionesRealizadas = [];
       alarmasPospuestas = {};
       alarmasDisparadas = {};
+      detenerSincronizacion();
     }
 
     // ==================== FUNCIONES UTILIDAD ====================
@@ -1967,11 +2137,15 @@
     }
 
     // ==================== GUARDIA ====================
-    function iniciarGuardia(tipo, signosVitalesRestaurados = null) {
+    function iniciarGuardia(tipo, opciones = {}) {
+      // opciones puede contener: { preservarDatos: boolean, signosVitales: object }
+      const preservarDatos = opciones.preservarDatos === true;
+      const signosVitalesRestaurados = opciones.signosVitales || null;
+
       guardiaActual = tipo;
 
-      // Si no hay datos restaurados, limpiar todo
-      if (!signosVitalesRestaurados) {
+      // Solo limpiar si NO estamos preservando datos
+      if (!preservarDatos) {
         medicacionCompletada = {};
         tareasCompletadas = {};
         rotacionesRealizadas = [];
@@ -1999,6 +2173,9 @@
       // Iniciar chequeo de alarmas cada 30 segundos
       if (checkAlarmsInterval) clearInterval(checkAlarmsInterval);
       checkAlarmsInterval = setInterval(checkAlarms, 30000);
+
+      // Iniciar sincronización con la nube (cada 10 segundos)
+      iniciarSincronizacion();
 
       // Guardar estado inicial
       guardarEstado();
@@ -3050,14 +3227,25 @@ Enviado desde Recalde Health System
     actualizarHora();
     setInterval(actualizarHora, 1000);
 
-    // Verificar si hay una sesión guardada
-    window.addEventListener('load', function () {
-      // Inicializar Supabase para sincronización de reportes
+    // Verificar si hay una sesión guardada (primero nube, luego local)
+    window.addEventListener('load', async function () {
+      // Inicializar Supabase para sincronización
       initSupabase();
 
       // Actualizar badge de reportes no leídos
       actualizarBadgeReportes();
-      const estadoGuardado = cargarEstado();
+
+      // Esperar un momento para que Supabase se inicialice
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Intentar cargar desde la nube primero (para sincronización entre dispositivos)
+      let estadoGuardado = await cargarEstadoDesdeNube();
+
+      // Si no hay en la nube, intentar localStorage
+      if (!estadoGuardado) {
+        estadoGuardado = cargarEstado();
+      }
+
       if (estadoGuardado) {
         const tiempoTranscurrido = Math.round((Date.now() - estadoGuardado.timestamp) / 60000);
         const mensaje = `Se encontró una guardia ${estadoGuardado.guardiaActual} en progreso.\n\n` +
@@ -3069,9 +3257,10 @@ Enviado desde Recalde Health System
         if (confirm(mensaje)) {
           const signosVitales = restaurarEstado(estadoGuardado);
           validarFormulario();
-          iniciarGuardia(estadoGuardado.guardiaActual, signosVitales);
+          iniciarGuardia(estadoGuardado.guardiaActual, { preservarDatos: true, signosVitales: signosVitales });
         } else {
-          limpiarGuardia();
+          // NO limpiar la nube, solo el local
+          localStorage.removeItem('recaldeHealthGuardia');
         }
       }
     });
