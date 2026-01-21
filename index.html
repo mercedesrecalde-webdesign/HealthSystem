@@ -2410,8 +2410,7 @@
       } else {
         medicacionCompletada[id] = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
       }
-      renderizarMedicacionGuardia();
-      actualizarProgreso();
+      renderizarGuardia();
       guardarEstado();
     }
 
@@ -2421,8 +2420,7 @@
       } else {
         tareasCompletadas[id] = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
       }
-      renderizarTareasGuardia();
-      actualizarProgreso();
+      renderizarGuardia();
       guardarEstado();
     }
 
