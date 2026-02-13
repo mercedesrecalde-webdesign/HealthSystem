@@ -1001,6 +1001,45 @@
       { id: 7, nombre: "Circuito ARM sin tracción" },
     ];
 
+    // ==================== PERSISTENCIA CONFIG ADMIN (LocalStorage) ====================
+    function guardarConfigAdmin() {
+      try {
+        localStorage.setItem('recaldeHealthMedicacion', JSON.stringify(medicacion));
+        localStorage.setItem('recaldeHealthTareas', JSON.stringify(tareas));
+        localStorage.setItem('recaldeHealthControles', JSON.stringify(controlesRotacion));
+        console.log('[Admin] Configuración guardada en localStorage');
+        mostrarIndicadorGuardado();
+      } catch (e) {
+        console.error('[Admin] Error al guardar configuración:', e);
+      }
+    }
+
+    function cargarConfigAdmin() {
+      try {
+        const medGuardada = localStorage.getItem('recaldeHealthMedicacion');
+        const tarGuardada = localStorage.getItem('recaldeHealthTareas');
+        const ctrlGuardado = localStorage.getItem('recaldeHealthControles');
+
+        if (medGuardada) {
+          medicacion = JSON.parse(medGuardada);
+          console.log('[Admin] Medicación cargada desde localStorage');
+        }
+        if (tarGuardada) {
+          tareas = JSON.parse(tarGuardada);
+          console.log('[Admin] Tareas cargadas desde localStorage');
+        }
+        if (ctrlGuardado) {
+          controlesRotacion = JSON.parse(ctrlGuardado);
+          console.log('[Admin] Controles cargados desde localStorage');
+        }
+      } catch (e) {
+        console.error('[Admin] Error al cargar configuración:', e);
+      }
+    }
+
+    // Cargar configuración guardada al iniciar
+    cargarConfigAdmin();
+
     let guardiaActual = null;
     let enfermero = "";
     let auxiliar = "";
@@ -1843,12 +1882,14 @@
         document.getElementById('nuevo-med-dosis').value = '';
         document.getElementById('nuevo-med-cantidad').value = '';
         document.getElementById('nuevo-med-obs').value = '';
+        guardarConfigAdmin();
         renderizarListaMedicacion();
       }
     }
 
     function eliminarMedicacion(id) {
       medicacion = medicacion.filter(m => m.id !== id);
+      guardarConfigAdmin();
       renderizarListaMedicacion();
     }
 
@@ -1885,12 +1926,14 @@
         document.getElementById('nueva-tarea-nombre').value = '';
         document.getElementById('nueva-tarea-horario').value = '';
         document.getElementById('nueva-tarea-detalle').value = '';
+        guardarConfigAdmin();
         renderizarListaTareas();
       }
     }
 
     function eliminarTarea(id) {
       tareas = tareas.filter(t => t.id !== id);
+      guardarConfigAdmin();
       renderizarListaTareas();
     }
 
@@ -1909,12 +1952,14 @@
       if (input.value) {
         controlesRotacion.push({ id: Date.now(), nombre: input.value });
         input.value = '';
+        guardarConfigAdmin();
         renderizarListaControles();
       }
     }
 
     function eliminarControl(id) {
       controlesRotacion = controlesRotacion.filter(c => c.id !== id);
+      guardarConfigAdmin();
       renderizarListaControles();
     }
 
