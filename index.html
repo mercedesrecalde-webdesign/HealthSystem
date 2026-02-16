@@ -745,9 +745,37 @@
               class="w-full px-2 py-2 text-center text-sm rounded-xl border outline-none">
           </div>
         </div>
-      </div>
 
-      <!-- Timeline Cronológico Unificado -->
+        <!-- Catarsis y Diuresis -->
+        <div class="mt-3 pt-3 border-t border-slate-200/30">
+          <div class="grid grid-cols-2 gap-3">
+            <!-- Catarsis -->
+            <div>
+              <label id="label-catarsis" class="text-xs font-semibold block text-center mb-1">🚽 Catarsis</label>
+              <div class="flex items-center gap-1 justify-center">
+                <button onclick="modificarControl('catarsis', '-')" id="btn-catarsis-menos"
+                  class="w-9 h-9 rounded-xl font-bold text-lg flex items-center justify-center bg-red-100 text-red-600 hover:bg-red-200 active:scale-95 transition-all">−</button>
+                <div id="sv-catarsis-display" class="flex-1 text-center font-bold text-lg min-w-[60px] py-1.5 rounded-xl border cursor-pointer select-none"
+                  onclick="resetearControl('catarsis')" title="Tocar para resetear">—</div>
+                <button onclick="modificarControl('catarsis', '+')" id="btn-catarsis-mas"
+                  class="w-9 h-9 rounded-xl font-bold text-lg flex items-center justify-center bg-emerald-100 text-emerald-600 hover:bg-emerald-200 active:scale-95 transition-all">+</button>
+              </div>
+            </div>
+            <!-- Diuresis -->
+            <div>
+              <label id="label-diuresis" class="text-xs font-semibold block text-center mb-1">💧 Diuresis</label>
+              <div class="flex items-center gap-1 justify-center">
+                <button onclick="modificarControl('diuresis', '-')" id="btn-diuresis-menos"
+                  class="w-9 h-9 rounded-xl font-bold text-lg flex items-center justify-center bg-red-100 text-red-600 hover:bg-red-200 active:scale-95 transition-all">−</button>
+                <div id="sv-diuresis-display" class="flex-1 text-center font-bold text-lg min-w-[60px] py-1.5 rounded-xl border cursor-pointer select-none"
+                  onclick="resetearControl('diuresis')" title="Tocar para resetear">—</div>
+                <button onclick="modificarControl('diuresis', '+')" id="btn-diuresis-mas"
+                  class="w-9 h-9 rounded-xl font-bold text-lg flex items-center justify-center bg-emerald-100 text-emerald-600 hover:bg-emerald-200 active:scale-95 transition-all">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div>
         <div class="flex items-center gap-3 mb-4">
           <div class="p-2 bg-gradient-to-r from-amber-400 to-rose-400 rounded-xl">
@@ -914,7 +942,7 @@
           </svg>
           <h3 id="titulo-sv-informe" class="font-bold">Signos Vitales</h3>
         </div>
-        <div id="lista-sv-informe" class="grid grid-cols-3 gap-2"></div>
+        <div id="lista-sv-informe" class="grid grid-cols-4 gap-2"></div>
       </div>
 
       <!-- Mensaje Importante para el Administrador -->
@@ -1047,6 +1075,10 @@
     let tareasCompletadas = {};
     let rotacionesRealizadas = [];
     let seccionesExpandidas = { 'medicacion-guardia': true, 'tareas-guardia': true, 'rotaciones-guardia': true };
+
+    // Variables para catarsis y diuresis
+    let catarsisCount = 0; // positivo = +, negativo = -
+    let diuresisCount = 0;
 
     // Variables para alarmas
     let alarmasActivas = true;
@@ -1302,6 +1334,50 @@
       guardarEstado();
     }
 
+    // ==================== CATARSIS Y DIURESIS ====================
+    function modificarControl(tipo, signo) {
+      if (tipo === 'catarsis') {
+        if (signo === '+') catarsisCount++;
+        else if (signo === '-') catarsisCount--;
+      } else if (tipo === 'diuresis') {
+        if (signo === '+') diuresisCount++;
+        else if (signo === '-') diuresisCount--;
+      }
+      actualizarDisplayControl(tipo);
+      guardarEstado();
+    }
+
+    function resetearControl(tipo) {
+      if (confirm(`¿Resetear ${tipo} a 0?`)) {
+        if (tipo === 'catarsis') catarsisCount = 0;
+        else if (tipo === 'diuresis') diuresisCount = 0;
+        actualizarDisplayControl(tipo);
+        guardarEstado();
+      }
+    }
+
+    function actualizarDisplayControl(tipo) {
+      const count = tipo === 'catarsis' ? catarsisCount : diuresisCount;
+      const display = document.getElementById(`sv-${tipo}-display`);
+      if (!display) return;
+
+      if (count === 0) {
+        display.textContent = '—';
+        display.style.color = '';
+      } else if (count > 0) {
+        display.textContent = '+'.repeat(count);
+        display.style.color = '#10b981'; // emerald
+      } else {
+        display.textContent = '−'.repeat(Math.abs(count));
+        display.style.color = '#ef4444'; // red
+      }
+    }
+
+    function actualizarTodosDisplayControles() {
+      actualizarDisplayControl('catarsis');
+      actualizarDisplayControl('diuresis');
+    }
+
     function showAlarmNotification(tipo, titulo, descripcion, id, tipoTarea = null) {
       const notification = document.getElementById('alarm-notification');
       const titleEl = document.getElementById('alarm-title');
@@ -1505,7 +1581,9 @@
           temp: document.getElementById('sv-temp')?.value || '',
           spo2: document.getElementById('sv-spo2')?.value || '',
           fr: document.getElementById('sv-fr')?.value || '',
-          gluc: document.getElementById('sv-gluc')?.value || ''
+          gluc: document.getElementById('sv-gluc')?.value || '',
+          catarsis: catarsisCount,
+          diuresis: diuresisCount
         },
         alarmasActivas,
         alarmasPospuestas,
@@ -1669,9 +1747,20 @@
           }
         });
 
+        // Sincronizar catarsis y diuresis desde la nube
+        if (svNube.catarsis !== undefined && svNube.catarsis !== catarsisCount) {
+          catarsisCount = svNube.catarsis;
+          huboCambios = true;
+        }
+        if (svNube.diuresis !== undefined && svNube.diuresis !== diuresisCount) {
+          diuresisCount = svNube.diuresis;
+          huboCambios = true;
+        }
+
         if (huboCambios) {
           console.log('[Sync] Datos actualizados desde otro dispositivo');
           renderizarGuardia();
+          actualizarTodosDisplayControles();
           // Guardar los datos mezclados
           localStorage.setItem('recaldeHealthGuardia', JSON.stringify({
             guardiaActual,
@@ -1723,6 +1812,12 @@
       document.getElementById('input-enfermero').value = enfermero;
       document.getElementById('input-auxiliar').value = auxiliar;
 
+      // Restaurar catarsis y diuresis
+      if (estado.signosVitales) {
+        catarsisCount = estado.signosVitales.catarsis || 0;
+        diuresisCount = estado.signosVitales.diuresis || 0;
+      }
+
       return estado.signosVitales;
     }
 
@@ -1743,6 +1838,8 @@
       rotacionesRealizadas = [];
       alarmasPospuestas = {};
       alarmasDisparadas = {};
+      catarsisCount = 0;
+      diuresisCount = 0;
       detenerSincronizacion();
     }
 
@@ -1865,26 +1962,44 @@
     function agregarMedicacion() {
       const hora = document.getElementById('nuevo-med-hora').value;
       const guardia = document.getElementById('nuevo-med-guardia').value;
-      const nombre = document.getElementById('nuevo-med-nombre').value;
-      const dosis = document.getElementById('nuevo-med-dosis').value;
-      const cantidad = document.getElementById('nuevo-med-cantidad').value;
-      const obs = document.getElementById('nuevo-med-obs').value;
+      const nombre = document.getElementById('nuevo-med-nombre').value.trim();
+      const dosis = document.getElementById('nuevo-med-dosis').value.trim();
+      const cantidad = document.getElementById('nuevo-med-cantidad').value.trim();
+      const obs = document.getElementById('nuevo-med-obs').value.trim();
 
-      if (hora && nombre) {
-        medicacion.push({
-          id: Date.now(),
-          hora,
-          guardia,
-          medicamentos: [{ nombre, dosis, cantidad, observaciones: obs }]
-        });
-        document.getElementById('nuevo-med-hora').value = '';
-        document.getElementById('nuevo-med-nombre').value = '';
-        document.getElementById('nuevo-med-dosis').value = '';
-        document.getElementById('nuevo-med-cantidad').value = '';
-        document.getElementById('nuevo-med-obs').value = '';
-        guardarConfigAdmin();
-        renderizarListaMedicacion();
+      if (!hora) {
+        alert('⚠️ Debe seleccionar una hora para la medicación');
+        document.getElementById('nuevo-med-hora').focus();
+        return;
       }
+      if (!nombre) {
+        alert('⚠️ Debe ingresar el nombre del medicamento');
+        document.getElementById('nuevo-med-nombre').focus();
+        return;
+      }
+
+      const nuevaMed = {
+        id: Date.now(),
+        hora,
+        guardia,
+        medicamentos: [{ nombre, dosis, cantidad, observaciones: obs }]
+      };
+
+      medicacion.push(nuevaMed);
+
+      // Limpiar campos
+      document.getElementById('nuevo-med-hora').value = '';
+      document.getElementById('nuevo-med-nombre').value = '';
+      document.getElementById('nuevo-med-dosis').value = '';
+      document.getElementById('nuevo-med-cantidad').value = '';
+      document.getElementById('nuevo-med-obs').value = '';
+
+      // Guardar y renderizar
+      guardarConfigAdmin();
+      renderizarListaMedicacion();
+
+      // Confirmación visual
+      alert(`✅ Medicación guardada:\n\n💊 ${nombre} ${dosis ? '- ' + dosis : ''}\n⏰ ${hora} - Guardia ${guardia}\n\nLa medicación aparecerá en la guardia ${guardia}.`);
     }
 
     function eliminarMedicacion(id) {
@@ -1915,20 +2030,30 @@
     }
 
     function agregarTarea() {
-      const nombre = document.getElementById('nueva-tarea-nombre').value;
-      const horario = document.getElementById('nueva-tarea-horario').value;
-      const detalle = document.getElementById('nueva-tarea-detalle').value;
+      const nombre = document.getElementById('nueva-tarea-nombre').value.trim();
+      const horario = document.getElementById('nueva-tarea-horario').value.trim();
+      const detalle = document.getElementById('nueva-tarea-detalle').value.trim();
       const guardia = document.getElementById('nueva-tarea-guardia').value;
       const tipo = document.getElementById('nueva-tarea-tipo').value;
 
-      if (nombre) {
-        tareas.push({ id: Date.now(), nombre, horario, detalle, guardia, tipo });
-        document.getElementById('nueva-tarea-nombre').value = '';
-        document.getElementById('nueva-tarea-horario').value = '';
-        document.getElementById('nueva-tarea-detalle').value = '';
-        guardarConfigAdmin();
-        renderizarListaTareas();
+      if (!nombre) {
+        alert('⚠️ Debe ingresar el nombre de la tarea');
+        document.getElementById('nueva-tarea-nombre').focus();
+        return;
       }
+
+      // Extraer hora del horario si tiene formato HH:MM
+      const horaMatch = horario.match(/^(\d{2}):(\d{2})/);
+      const hora = horaMatch ? horario.substring(0, 5) : null;
+
+      tareas.push({ id: Date.now(), nombre, hora, horario: horario || 'Sin horario', detalle: detalle || '', guardia, tipo });
+      document.getElementById('nueva-tarea-nombre').value = '';
+      document.getElementById('nueva-tarea-horario').value = '';
+      document.getElementById('nueva-tarea-detalle').value = '';
+      guardarConfigAdmin();
+      renderizarListaTareas();
+
+      alert(`✅ Tarea guardada:\n\n📋 ${nombre}\n⏰ ${horario || 'Sin horario'} - Guardia ${guardia}`);
     }
 
     function eliminarTarea(id) {
@@ -2055,6 +2180,8 @@
                 ${r.signosVitales.spo2 ? `<span class="px-2 py-1 bg-slate-100 rounded text-xs"><b>SpO2:</b> ${r.signosVitales.spo2}</span>` : ''}
                 ${r.signosVitales.fr ? `<span class="px-2 py-1 bg-slate-100 rounded text-xs"><b>FR:</b> ${r.signosVitales.fr}</span>` : ''}
                 ${r.signosVitales.gluc ? `<span class="px-2 py-1 bg-rose-100 rounded text-xs"><b>Gluc:</b> ${r.signosVitales.gluc}</span>` : ''}
+                ${r.signosVitales.catarsis ? `<span class="px-2 py-1 bg-amber-100 rounded text-xs"><b>Catarsis:</b> ${r.signosVitales.catarsis > 0 ? '+'.repeat(r.signosVitales.catarsis) : '−'.repeat(Math.abs(r.signosVitales.catarsis))}</span>` : ''}
+                ${r.signosVitales.diuresis ? `<span class="px-2 py-1 bg-blue-100 rounded text-xs"><b>Diuresis:</b> ${r.signosVitales.diuresis > 0 ? '+'.repeat(r.signosVitales.diuresis) : '−'.repeat(Math.abs(r.signosVitales.diuresis))}</span>` : ''}
               </div>
             </div>
             ` : ''}
@@ -2096,7 +2223,10 @@
       detalle += `───────────────────────────────\n`;
       if (r.signosVitales) {
         detalle += `PA: ${r.signosVitales.pa || '-'} | FC: ${r.signosVitales.fc || '-'} | T°: ${r.signosVitales.temp || '-'}\n`;
-        detalle += `SpO2: ${r.signosVitales.spo2 || '-'} | FR: ${r.signosVitales.fr || '-'} | Gluc: ${r.signosVitales.gluc || '-'}\n\n`;
+        detalle += `SpO2: ${r.signosVitales.spo2 || '-'} | FR: ${r.signosVitales.fr || '-'} | Gluc: ${r.signosVitales.gluc || '-'}\n`;
+        const cat = r.signosVitales.catarsis;
+        const diu = r.signosVitales.diuresis;
+        detalle += `Catarsis: ${!cat ? '—' : (cat > 0 ? '+'.repeat(cat) : '−'.repeat(Math.abs(cat)))} | Diuresis: ${!diu ? '—' : (diu > 0 ? '+'.repeat(diu) : '−'.repeat(Math.abs(diu)))}\n\n`;
       }
 
       detalle += `MEDICACIÓN\n`;
@@ -2147,12 +2277,14 @@
       }
 
       // Crear CSV
-      let csv = 'Fecha,Guardia,Enfermero,Auxiliar,Progreso,Med Completadas,Med Total,Tareas Completadas,Tareas Total,Rotaciones,PA,FC,Temp,SpO2,FR,Glucemia,Observaciones\n';
+      let csv = 'Fecha,Guardia,Enfermero,Auxiliar,Progreso,Med Completadas,Med Total,Tareas Completadas,Tareas Total,Rotaciones,PA,FC,Temp,SpO2,FR,Glucemia,Catarsis,Diuresis,Observaciones\n';
 
       reportes.forEach(r => {
         const prog = r.progreso || {};
         const sv = r.signosVitales || {};
         const obs = (r.observaciones || '').replace(/"/g, '""').replace(/\n/g, ' ');
+        const catVal = sv.catarsis ? (sv.catarsis > 0 ? '+'.repeat(sv.catarsis) : '-'.repeat(Math.abs(sv.catarsis))) : '';
+        const diuVal = sv.diuresis ? (sv.diuresis > 0 ? '+'.repeat(sv.diuresis) : '-'.repeat(Math.abs(sv.diuresis))) : '';
 
         csv += `"${r.fecha}",`;
         csv += `"${r.guardiaTexto || r.guardia}",`;
@@ -2170,6 +2302,8 @@
         csv += `"${sv.spo2 || ''}",`;
         csv += `"${sv.fr || ''}",`;
         csv += `"${sv.gluc || ''}",`;
+        csv += `"${catVal}",`;
+        csv += `"${diuVal}",`;
         csv += `"${obs}"\n`;
       });
 
@@ -2196,6 +2330,8 @@
         rotacionesRealizadas = [];
         alarmasPospuestas = {};
         alarmasDisparadas = {};
+        catarsisCount = 0;
+        diuresisCount = 0;
       }
 
       mostrarPantalla('pantalla-guardia');
@@ -2210,7 +2346,13 @@
         document.getElementById('sv-spo2').value = signosVitalesRestaurados.spo2 || '';
         document.getElementById('sv-fr').value = signosVitalesRestaurados.fr || '';
         document.getElementById('sv-gluc').value = signosVitalesRestaurados.gluc || '';
+        // Restaurar catarsis y diuresis
+        catarsisCount = signosVitalesRestaurados.catarsis || 0;
+        diuresisCount = signosVitalesRestaurados.diuresis || 0;
       }
+
+      // Actualizar displays de catarsis/diuresis
+      actualizarTodosDisplayControles();
 
       // Configurar toggle de alarmas
       document.getElementById('alarm-toggle').checked = alarmasActivas;
@@ -2267,6 +2409,23 @@
         ['label-pa', 'label-fc', 'label-temp', 'label-spo2', 'label-fr', 'label-gluc'].forEach(id => {
           document.getElementById(id).className = 'text-xs font-semibold block text-center mb-1 text-slate-400';
         });
+        // Catarsis/Diuresis nocturna
+        ['label-catarsis', 'label-diuresis'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.className = 'text-xs font-semibold block text-center mb-1 text-slate-400';
+        });
+        ['sv-catarsis-display', 'sv-diuresis-display'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.className = 'flex-1 text-center font-bold text-lg min-w-[60px] py-1.5 rounded-xl border cursor-pointer select-none bg-white/5 border-white/20 text-white';
+        });
+        ['btn-catarsis-menos', 'btn-diuresis-menos'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.className = 'w-9 h-9 rounded-xl font-bold text-lg flex items-center justify-center bg-red-500/30 text-red-300 hover:bg-red-500/50 active:scale-95 transition-all';
+        });
+        ['btn-catarsis-mas', 'btn-diuresis-mas'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.className = 'w-9 h-9 rounded-xl font-bold text-lg flex items-center justify-center bg-emerald-500/30 text-emerald-300 hover:bg-emerald-500/50 active:scale-95 transition-all';
+        });
         // Estilos para timeline
         const tituloTimeline = document.getElementById('titulo-timeline');
         if (tituloTimeline) tituloTimeline.className = 'text-xl font-bold text-white';
@@ -2301,6 +2460,23 @@
         });
         ['label-pa', 'label-fc', 'label-temp', 'label-spo2', 'label-fr', 'label-gluc'].forEach(id => {
           document.getElementById(id).className = 'text-xs font-semibold block text-center mb-1 text-slate-500';
+        });
+        // Catarsis/Diuresis diurna
+        ['label-catarsis', 'label-diuresis'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.className = 'text-xs font-semibold block text-center mb-1 text-slate-500';
+        });
+        ['sv-catarsis-display', 'sv-diuresis-display'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.className = 'flex-1 text-center font-bold text-lg min-w-[60px] py-1.5 rounded-xl border cursor-pointer select-none border-slate-200';
+        });
+        ['btn-catarsis-menos', 'btn-diuresis-menos'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.className = 'w-9 h-9 rounded-xl font-bold text-lg flex items-center justify-center bg-red-100 text-red-600 hover:bg-red-200 active:scale-95 transition-all';
+        });
+        ['btn-catarsis-mas', 'btn-diuresis-mas'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.className = 'w-9 h-9 rounded-xl font-bold text-lg flex items-center justify-center bg-emerald-100 text-emerald-600 hover:bg-emerald-200 active:scale-95 transition-all';
         });
       }
 
@@ -2865,7 +3041,9 @@
         { label: 'T°', value: sv.temp },
         { label: 'SpO2', value: sv.spo2 },
         { label: 'FR', value: sv.fr },
-        { label: 'Gluc 🩸', value: sv.gluc }
+        { label: 'Gluc 🩸', value: sv.gluc },
+        { label: '🚽 Catarsis', value: catarsisCount === 0 ? '—' : (catarsisCount > 0 ? '+'.repeat(catarsisCount) : '−'.repeat(Math.abs(catarsisCount))) },
+        { label: '💧 Diuresis', value: diuresisCount === 0 ? '—' : (diuresisCount > 0 ? '+'.repeat(diuresisCount) : '−'.repeat(Math.abs(diuresisCount))) }
       ].map(s => `
         <div class="p-2 rounded-xl text-center ${esNocturna ? 'bg-white/5' : 'bg-slate-50'}">
           <p class="text-xs font-semibold ${esNocturna ? 'text-slate-400' : 'text-slate-500'}">${s.label}</p>
@@ -3105,7 +3283,9 @@
           temp: document.getElementById('sv-temp').value,
           spo2: document.getElementById('sv-spo2').value,
           fr: document.getElementById('sv-fr').value,
-          gluc: document.getElementById('sv-gluc').value
+          gluc: document.getElementById('sv-gluc').value,
+          catarsis: catarsisCount,
+          diuresis: diuresisCount
         },
         mensajeImportante: document.getElementById('input-mensaje-importante').value.trim(),
         observaciones: document.getElementById('input-observaciones').value,
@@ -3181,6 +3361,8 @@
    • SpO2: ${sv.spo2 || 'N/R'}
    • FR: ${sv.fr || 'N/R'}
    • Glucemia: ${sv.gluc || 'N/R'}
+   • Catarsis: ${sv.catarsis === 0 || !sv.catarsis ? '—' : (sv.catarsis > 0 ? '+'.repeat(sv.catarsis) : '−'.repeat(Math.abs(sv.catarsis)))}
+   • Diuresis: ${sv.diuresis === 0 || !sv.diuresis ? '—' : (sv.diuresis > 0 ? '+'.repeat(sv.diuresis) : '−'.repeat(Math.abs(sv.diuresis)))}
 `;
 
         if (informe.mensajeImportante) {
