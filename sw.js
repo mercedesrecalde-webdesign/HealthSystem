@@ -1,4 +1,4 @@
-const CACHE_NAME = 'recalde-health-v5';
+const CACHE_NAME = 'recalde-health-v6';
 const OFFLINE_URL = './index.html';
 
 const ASSETS_TO_CACHE = [

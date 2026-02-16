@@ -984,6 +984,8 @@
       { id: 10, hora: "22:00", medicamentos: [{ nombre: "Lorazepam", dosis: "10 mg", cantidad: "4 comp", observaciones: "" }, { nombre: "Cinitaprida", dosis: "1 mg", cantidad: "1 comp", observaciones: "" }], guardia: "nocturna" },
       { id: 11, hora: "00:00", medicamentos: [{ nombre: "Lorazepam", dosis: "2,5 mg", cantidad: "1 comp", observaciones: "" }, { nombre: "Vigabatrina", dosis: "500 mg", cantidad: "1 comp", observaciones: "" }, { nombre: "Salbutamol", dosis: "4 puff", cantidad: "", observaciones: "Inhalatorio por TQT (ARM)" }], guardia: "nocturna" },
       { id: 12, hora: "03:00", medicamentos: [{ nombre: "BAREX", dosis: "S/N", cantidad: "", observaciones: "Sólo si es necesario - Control catarsis" }], guardia: "nocturna" },
+      { id: 13, hora: "13:30", medicamentos: [{ nombre: "Buscapina", dosis: "10 mg", cantidad: "1 comp", observaciones: "Por GTT" }], guardia: "diurna" },
+      { id: 14, hora: "01:30", medicamentos: [{ nombre: "Buscapina", dosis: "10 mg", cantidad: "1 comp", observaciones: "Por GTT" }], guardia: "nocturna" },
     ];
 
     let tareas = [
@@ -1021,44 +1023,102 @@
       { id: 7, nombre: "Circuito ARM sin tracción" },
     ];
 
-    // ==================== PERSISTENCIA CONFIG ADMIN (LocalStorage) ====================
-    function guardarConfigAdmin() {
+    // ==================== PERSISTENCIA CONFIG ADMIN (Supabase + LocalStorage) ====================
+    // Guarda en localStorage Y en Supabase para que todos los dispositivos vean los cambios
+    async function guardarConfigAdmin() {
       try {
+        // 1. Guardar en localStorage (cache local / offline)
         localStorage.setItem('recaldeHealthMedicacion', JSON.stringify(medicacion));
         localStorage.setItem('recaldeHealthTareas', JSON.stringify(tareas));
         localStorage.setItem('recaldeHealthControles', JSON.stringify(controlesRotacion));
-        console.log('[Admin] Configuración guardada en localStorage');
+        console.log('[Admin] Config guardada en localStorage');
+
+        // 2. Guardar en Supabase (sincronización entre dispositivos)
+        if (supabaseClient) {
+          const { error } = await supabaseClient
+            .from('config_admin')
+            .upsert({
+              id: 'main',
+              medicacion: medicacion,
+              tareas: tareas,
+              controles_rotacion: controlesRotacion,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'id' });
+
+          if (error) {
+            console.error('[Admin] Error Supabase:', error);
+          } else {
+            console.log('[Admin] ✅ Config sincronizada con Supabase (todos los dispositivos actualizados)');
+          }
+        }
+
         mostrarIndicadorGuardado();
       } catch (e) {
         console.error('[Admin] Error al guardar configuración:', e);
       }
     }
 
-    function cargarConfigAdmin() {
-      try {
-        const medGuardada = localStorage.getItem('recaldeHealthMedicacion');
-        const tarGuardada = localStorage.getItem('recaldeHealthTareas');
-        const ctrlGuardado = localStorage.getItem('recaldeHealthControles');
+    async function cargarConfigAdmin() {
+      let cargadoDesdeNube = false;
 
-        if (medGuardada) {
-          medicacion = JSON.parse(medGuardada);
-          console.log('[Admin] Medicación cargada desde localStorage');
+      // 1. Intentar cargar desde Supabase primero (datos más actualizados)
+      if (supabaseClient) {
+        try {
+          const { data, error } = await supabaseClient
+            .from('config_admin')
+            .select('*')
+            .eq('id', 'main')
+            .single();
+
+          if (!error && data) {
+            if (data.medicacion && data.medicacion.length > 0) {
+              medicacion = data.medicacion;
+            }
+            if (data.tareas && data.tareas.length > 0) {
+              tareas = data.tareas;
+            }
+            if (data.controles_rotacion && data.controles_rotacion.length > 0) {
+              controlesRotacion = data.controles_rotacion;
+            }
+            cargadoDesdeNube = true;
+            console.log('[Admin] ✅ Config cargada desde Supabase');
+
+            // Actualizar localStorage con los datos de la nube
+            localStorage.setItem('recaldeHealthMedicacion', JSON.stringify(medicacion));
+            localStorage.setItem('recaldeHealthTareas', JSON.stringify(tareas));
+            localStorage.setItem('recaldeHealthControles', JSON.stringify(controlesRotacion));
+          }
+        } catch (e) {
+          console.log('[Admin] Supabase no disponible, usando localStorage:', e);
         }
-        if (tarGuardada) {
-          tareas = JSON.parse(tarGuardada);
-          console.log('[Admin] Tareas cargadas desde localStorage');
+      }
+
+      // 2. Fallback: cargar desde localStorage si no se pudo desde Supabase
+      if (!cargadoDesdeNube) {
+        try {
+          const medGuardada = localStorage.getItem('recaldeHealthMedicacion');
+          const tarGuardada = localStorage.getItem('recaldeHealthTareas');
+          const ctrlGuardado = localStorage.getItem('recaldeHealthControles');
+
+          if (medGuardada) {
+            medicacion = JSON.parse(medGuardada);
+            console.log('[Admin] Medicación cargada desde localStorage');
+          }
+          if (tarGuardada) {
+            tareas = JSON.parse(tarGuardada);
+            console.log('[Admin] Tareas cargadas desde localStorage');
+          }
+          if (ctrlGuardado) {
+            controlesRotacion = JSON.parse(ctrlGuardado);
+            console.log('[Admin] Controles cargados desde localStorage');
+          }
+        } catch (e) {
+          console.error('[Admin] Error al cargar configuración local:', e);
         }
-        if (ctrlGuardado) {
-          controlesRotacion = JSON.parse(ctrlGuardado);
-          console.log('[Admin] Controles cargados desde localStorage');
-        }
-      } catch (e) {
-        console.error('[Admin] Error al cargar configuración:', e);
       }
     }
 
-    // Cargar configuración guardada al iniciar
-    cargarConfigAdmin();
+    // La carga inicial ahora se hace en el window.addEventListener('load') después de inicializar Supabase
 
     let guardiaActual = null;
     let enfermero = "";
@@ -3473,11 +3533,11 @@ Enviado desde Recalde Health System
       // Inicializar Supabase para sincronización
       initSupabase();
 
+      // Cargar configuración admin desde Supabase (medicación, tareas, controles)
+      await cargarConfigAdmin();
+
       // Actualizar badge de reportes no leídos
       actualizarBadgeReportes();
-
-      // Esperar un momento para que Supabase se inicialice
-      await new Promise(resolve => setTimeout(resolve, 500));
 
       // Intentar cargar desde la nube primero (para sincronización entre dispositivos)
       let estadoGuardado = await cargarEstadoDesdeNube();
