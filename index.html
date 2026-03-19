@@ -615,10 +615,16 @@
         <div class="bg-white rounded-2xl shadow-lg p-4 mb-4">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-bold text-lg text-slate-800">📊 Reportes de Guardia</h3>
-            <button onclick="exportarReportesCSV()"
-              class="px-4 py-2 bg-emerald-500 text-white rounded-xl font-semibold text-sm hover:bg-emerald-600 transition-all">
-              📥 Exportar CSV
-            </button>
+            <div class="flex gap-2">
+              <button onclick="generarInformeEvolucion()"
+                class="px-4 py-2 bg-gradient-to-r from-teal-500 to-cyan-600 text-white rounded-xl font-semibold text-sm hover:shadow-lg transition-all flex items-center gap-1">
+                📈 Informe de Evolución
+              </button>
+              <button onclick="exportarReportesCSV()"
+                class="px-4 py-2 bg-emerald-500 text-white rounded-xl font-semibold text-sm hover:bg-emerald-600 transition-all">
+                📥 CSV
+              </button>
+            </div>
           </div>
           <p class="text-sm text-slate-500 mb-4">Historial de todos los informes enviados por los enfermeros</p>
           <div id="lista-reportes" class="space-y-4"></div>
@@ -3519,6 +3525,259 @@ Enviado desde Recalde Health System
         rotaciones: rotacionesRealizadas.length,
         porcentaje: Math.round(((completadasMed + completadasTar) / (meds.length + tars.length)) * 100) || 0
       };
+    }
+
+    // ==================== INFORME DE EVOLUCIÓN CLÍNICA ====================
+
+    async function generarInformeEvolucion() {
+      const reportes = await obtenerReportes();
+      if (!reportes || reportes.length === 0) {
+        alert('No hay reportes guardados para generar el informe de evolución.');
+        return;
+      }
+
+      // Ordenar por fecha ascendente
+      const ordenados = [...reportes].reverse();
+
+      // Extraer datos de signos vitales por guardia
+      const labels = [];
+      const pasSis = [], pasDia = [], fcs = [], spo2s = [], temps = [], catarsis = [], diuresis = [];
+
+      ordenados.forEach(r => {
+        if (!r.signosVitales) return;
+        const sv = r.signosVitales;
+        const fecha = r.fecha ? r.fecha.split(',')[0] : '?';
+        const guardia = (r.guardia === 'diurna') ? 'D' : 'N';
+        labels.push(fecha + '\n' + guardia);
+
+        // PA: puede ser "120/80"
+        const pa = (sv.pa || '').split('/');
+        pasSis.push(pa[0] ? parseFloat(pa[0]) : null);
+        pasDia.push(pa[1] ? parseFloat(pa[1]) : null);
+        fcs.push(sv.fc ? parseFloat(sv.fc) : null);
+        spo2s.push(sv.spo2 ? parseFloat(sv.spo2) : null);
+        temps.push(sv.temp ? parseFloat(sv.temp) : null);
+        catarsis.push(typeof sv.catarsis === 'number' ? sv.catarsis : null);
+        diuresis.push(typeof sv.diuresis === 'number' ? sv.diuresis : null);
+      });
+
+      // Promedios
+      const avg = arr => { const v = arr.filter(x => x !== null); return v.length ? (v.reduce((a,b)=>a+b,0)/v.length).toFixed(1) : 'N/R'; };
+
+      const totalRep = reportes.length;
+      const periodo = (() => {
+        if (ordenados.length === 0) return '—';
+        const primero = ordenados[0].fecha ? ordenados[0].fecha.split(',')[0] : '?';
+        const ultimo = ordenados[ordenados.length-1].fecha ? ordenados[ordenados.length-1].fecha.split(',')[0] : '?';
+        return primero === ultimo ? primero : primero + ' — ' + ultimo;
+      })();
+
+      // Generar HTML del informe
+      const labelsJSON = JSON.stringify(labels);
+      const pasSisJSON = JSON.stringify(pasSis);
+      const pasDiaJSON = JSON.stringify(pasDia);
+      const fcsJSON = JSON.stringify(fcs);
+      const spo2sJSON = JSON.stringify(spo2s);
+      const tempsJSON = JSON.stringify(temps);
+      const catarsisJSON = JSON.stringify(catarsis);
+      const diuresisJSON = JSON.stringify(diuresis);
+
+      const htmlContent = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Informe de Evolución Clínica - Recalde</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"><\/script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; }
+    .page { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 2rem; font-weight: 900; color: #0f172a; margin-bottom: 4px; }
+    .subtitle { color: #64748b; font-size: 0.9rem; margin-bottom: 4px; }
+    .meta { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 24px; }
+    .meta span { font-size: 0.85rem; color: #475569; }
+    .divider { border: none; border-top: 3px solid #14b8a6; margin: 16px 0 24px; }
+    .cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 32px; }
+    .card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 12px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+    .card .label { font-size: 0.72rem; color: #94a3b8; font-weight: 600; margin-bottom: 4px; }
+    .card .value { font-size: 1.8rem; font-weight: 900; color: #0f172a; line-height: 1; }
+    .card .unit { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+    .card .normal { font-size: 0.68rem; color: #94a3b8; margin-top: 2px; }
+    .section-title { font-size: 1rem; font-weight: 800; color: #14b8a6; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 16px; margin-top: 32px; }
+    .chart-wrap { background: white; border-radius: 14px; border: 1px solid #e2e8f0; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .btn-print { position: fixed; bottom: 24px; right: 24px; background: linear-gradient(135deg, #14b8a6, #0891b2); color: white; border: none; padding: 14px 24px; border-radius: 14px; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(20,184,166,.4); z-index: 999; }
+    @media print { .btn-print { display: none; } body { background: white; } .page { padding: 16px; } }
+    @media (max-width: 600px) { .cards { grid-template-columns: repeat(3, 1fr); } .chart-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="page">
+  <h1>Informe de Evolución Clínica</h1>
+  <div class="subtitle">Paciente: <strong>Patricio Recalde</strong> &nbsp;·&nbsp; Generado: ${new Date().toLocaleDateString('es-AR')}</div>
+  <div class="subtitle">Período: ${periodo} &nbsp;·&nbsp; ${totalRep} registros</div>
+  <hr class="divider">
+
+  <div class="cards">
+    <div class="card">
+      <div class="label">PA Sistólica</div>
+      <div class="value">${avg(pasSis)}</div>
+      <div class="unit">mmHg</div>
+      <div class="normal">Normal: &lt;130</div>
+    </div>
+    <div class="card">
+      <div class="label">PA Diastólica</div>
+      <div class="value">${avg(pasDia)}</div>
+      <div class="unit">mmHg</div>
+      <div class="normal">Normal: &lt;85</div>
+    </div>
+    <div class="card">
+      <div class="label">Frec. Cardíaca</div>
+      <div class="value">${avg(fcs)}</div>
+      <div class="unit">lpm</div>
+      <div class="normal">Normal: 60–100</div>
+    </div>
+    <div class="card">
+      <div class="label">SpO₂</div>
+      <div class="value">${avg(spo2s)}</div>
+      <div class="unit">%</div>
+      <div class="normal">Normal: ≥95%</div>
+    </div>
+    <div class="card">
+      <div class="label">Temperatura</div>
+      <div class="value">${avg(temps)}</div>
+      <div class="unit">°C</div>
+      <div class="normal">Normal: 36–37.5</div>
+    </div>
+  </div>
+
+  <div class="section-title">Presión Arterial — Evolución sistólica y diastólica (mmHg)</div>
+  <div class="chart-wrap">
+    <canvas id="chartPA" height="120"></canvas>
+  </div>
+
+  <div class="section-title">Frecuencia Cardíaca y Saturación de Oxígeno</div>
+  <div class="chart-grid">
+    <div class="chart-wrap"><canvas id="chartFC" height="180"></canvas></div>
+    <div class="chart-wrap"><canvas id="chartSpO2" height="180"></canvas></div>
+  </div>
+
+  <div class="section-title">Temperatura Corporal (°C)</div>
+  <div class="chart-wrap">
+    <canvas id="chartTemp" height="100"></canvas>
+  </div>
+
+  <div class="section-title">Diuresis y Catarsis</div>
+  <div class="chart-grid">
+    <div class="chart-wrap"><canvas id="chartDiuresis" height="180"></canvas></div>
+    <div class="chart-wrap"><canvas id="chartCatarsis" height="180"></canvas></div>
+  </div>
+</div>
+
+<button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+
+<script>
+const LABELS = ${labelsJSON};
+const PAS = ${pasSisJSON};
+const PAD = ${pasDiaJSON};
+const FC = ${fcsJSON};
+const SPO2 = ${spo2sJSON};
+const TEMP = ${tempsJSON};
+const DIURESIS = ${diuresisJSON};
+const CATARSIS = ${catarsisJSON};
+
+const baseOpts = (yLabel, min, max) => ({
+  responsive: true,
+  plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } },
+  scales: {
+    x: { ticks: { font: { size: 9 }, maxRotation: 60 }, grid: { color: '#f1f5f9' } },
+    y: { min, max, title: { display: !!yLabel, text: yLabel, font: { size: 11 } }, grid: { color: '#f1f5f9' } }
+  }
+});
+
+// PA
+new Chart(document.getElementById('chartPA'), {
+  type: 'line',
+  data: {
+    labels: LABELS,
+    datasets: [
+      { label: 'Sistólica', data: PAS, borderColor: '#ef4444', backgroundColor: 'transparent', pointBackgroundColor: '#ef4444', tension: 0.3, pointRadius: 4 },
+      { label: 'Diastólica', data: PAD, borderColor: '#f97316', backgroundColor: 'transparent', pointBackgroundColor: '#f97316', tension: 0.3, pointRadius: 4 }
+    ]
+  },
+  options: baseOpts('mmHg', 40, 180)
+});
+
+// FC
+new Chart(document.getElementById('chartFC'), {
+  type: 'line',
+  data: {
+    labels: LABELS,
+    datasets: [{ label: 'Frecuencia Cardíaca', data: FC, borderColor: '#10b981', backgroundColor: 'transparent', pointBackgroundColor: '#10b981', tension: 0.3, pointRadius: 4 }]
+  },
+  options: baseOpts('lpm', 40, 140)
+});
+
+// SpO2
+new Chart(document.getElementById('chartSpO2'), {
+  type: 'line',
+  data: {
+    labels: LABELS,
+    datasets: [{ label: 'Saturación de Oxígeno (SpO2)', data: SPO2, borderColor: '#3b82f6', backgroundColor: 'transparent', pointBackgroundColor: '#3b82f6', tension: 0.3, pointRadius: 4 }]
+  },
+  options: { ...baseOpts('%', 88, 102), plugins: { ...baseOpts('%', 88, 102).plugins, annotation: {} } }
+});
+
+// Temp
+new Chart(document.getElementById('chartTemp'), {
+  type: 'line',
+  data: {
+    labels: LABELS,
+    datasets: [{ label: 'Temperatura (°C)', data: TEMP, borderColor: '#8b5cf6', backgroundColor: 'transparent', pointBackgroundColor: '#8b5cf6', tension: 0.3, pointRadius: 4 }]
+  },
+  options: baseOpts('°C', 34, 39)
+});
+
+// Diuresis
+new Chart(document.getElementById('chartDiuresis'), {
+  type: 'bar',
+  data: {
+    labels: LABELS,
+    datasets: [{ label: 'Diuresis', data: DIURESIS, backgroundColor: '#60a5fa', borderRadius: 4 }]
+  },
+  options: { responsive: true, plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } }, scales: { x: { ticks: { font: { size: 9 }, maxRotation: 60 } }, y: { min: -3, max: 6, grid: { color: '#f1f5f9' }, ticks: { callback: v => v > 0 ? '+'.repeat(v) : v < 0 ? '−'.repeat(Math.abs(v)) : '—' } } } }
+});
+
+// Catarsis
+new Chart(document.getElementById('chartCatarsis'), {
+  type: 'bar',
+  data: {
+    labels: LABELS,
+    datasets: [{ label: 'Catarsis', data: CATARSIS, backgroundColor: '#f87171', borderRadius: 4 }]
+  },
+  options: { responsive: true, plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } }, scales: { x: { ticks: { font: { size: 9 }, maxRotation: 60 } }, y: { min: -3, max: 6, grid: { color: '#f1f5f9' }, ticks: { callback: v => v > 0 ? '+'.repeat(v) : v < 0 ? '−'.repeat(Math.abs(v)) : '—' } } } }
+});
+<\/script>
+</body>
+</html>`;
+
+      // Abrir en nueva ventana/pestaña
+      const ventana = window.open('', '_blank');
+      if (ventana) {
+        ventana.document.write(htmlContent);
+        ventana.document.close();
+      } else {
+        // Fallback: descargar como archivo
+        const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'informe-evolucion-recalde.html';
+        a.click();
+        URL.revokeObjectURL(url);
+        alert('El informe se descargó como archivo HTML. Abrilo en tu navegador para verlo o imprimirlo.');
+      }
     }
 
     // ==================== INICIALIZACIÓN ====================
